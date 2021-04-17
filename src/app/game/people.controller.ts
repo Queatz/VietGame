@@ -43,11 +43,10 @@ export class PeopleController {
   quizItems = quiz.trim().split('\n').map(item => {
     const x = item.split('\t')
     return {
-      answer: x[0],
-      question: x[1]
+      answer: x[0].trim(),
+      question: x[1].trim()
     } as QuizItem
   })
-
 
   peopleMeshes: Array<Mesh> = []
 
@@ -77,33 +76,46 @@ export class PeopleController {
 
       const srnd = seedrandom(i.toString())
 
-      const nameMesh = this.overlay.text(names[Math.floor(srnd() * names.length)], mesh)
+      const name = names[Math.floor(srnd() * names.length)]
+      const nameMesh = this.overlay.text(name, mesh)
 
       mesh.metadata = {
         nameMesh,
+        talkMesh: undefined as unknown as Mesh,
         index: 0,
         items: shuffle(srnd, [ ...this.quizItems ]),
         ask: () => {
-          if (mesh.metadata.index >= mesh.metadata.items.length) {
-            this.overlay.text('Đó là tất cả!', mesh, true)
-          } else {
-            this.overlay.text(`${mesh.metadata.items[mesh.metadata.index].question} [${mesh.metadata.index + 1}/${mesh.metadata.items.length}]`, mesh, true)
+          if (mesh.metadata.talkMesh) {
+            mesh.metadata.talkMesh.dispose()
           }
 
+          if (mesh.metadata.index >= mesh.metadata.items.length) {
+            mesh.metadata.talkMesh = this.overlay.text('Đó là tất cả!', mesh, true)
+          } else {
+            mesh.metadata.talkMesh = this.overlay.text(mesh.metadata.items[mesh.metadata.index].question, mesh, true)
+          }
         },
         say: (text: string) => {
-          if (mesh.metadata.items[mesh.metadata.index].answer === text) {
+          if (mesh.metadata.talkMesh) {
+            mesh.metadata.talkMesh.dispose()
+          }
+
+          if (mesh.metadata.items[mesh.metadata.index].answer.trim() === text) {
             mesh.metadata.index++
+            mesh.metadata.nameMesh.dispose()
+            mesh.metadata.nameMesh = this.overlay.text(`${name} (${mesh.metadata.index}/${mesh.metadata.items.length})`, mesh)
 
             if (mesh.metadata.index >= mesh.metadata.items.length) {
-              this.overlay.text('Đúng! Đó là tất cả!', mesh, true)
+              mesh.metadata.talkMesh = this.overlay.text('Đúng! Đó là tất cả!', mesh, true)
               material.diffuseColor = Color3.White()
             } else {
-              this.overlay.text('Đúng!', mesh, true)
+              mesh.metadata.talkMesh = this.overlay.text('Đúng!', mesh, true)
             }
           } else {
-            this.overlay.text(`Không chính xác! Nó là "${mesh.metadata.items[mesh.metadata.index].answer}".`, mesh, true)
-            mesh.metadata.index = 0
+            mesh.metadata.talkMesh = this.overlay.text(`Không chính xác! Nó là "${mesh.metadata.items[mesh.metadata.index].answer}".`, mesh, true)
+            mesh.metadata.index = Math.max(0, mesh.metadata.index - 2)
+            mesh.metadata.nameMesh.dispose()
+            mesh.metadata.nameMesh = this.overlay.text(`${name} (${mesh.metadata.index}/${mesh.metadata.items.length})`, mesh)
           }
         }
       }
