@@ -1,6 +1,5 @@
-import { Color3, DeepImmutable, Mesh, PickingInfo, Ray, Scene, StandardMaterial, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { InputController } from "./input.controller"
-import { CapsuleBuilder } from "@babylonjs/core/Meshes/Builders/capsuleBuilder"
 import { PeopleController } from "./people.controller"
 import { OverlayController } from "./overlay.controller"
 import { Observable } from "rxjs"
@@ -13,13 +12,9 @@ export class PlayerController {
   playerMaterial: StandardMaterial
 
   constructor(private say: Observable<string>, private people: PeopleController, private items: ItemsController, private input: InputController, private overlay: OverlayController, private scene: Scene) {
-    this.playerObject = CapsuleBuilder.CreateCapsule('player', {
+    this.playerObject = PlaneBuilder.CreatePlane('player', {
       height: 1,
-      radius: .2,
-      subdivisions: 12,
-      capSubdivisions: 12,
-      bottomCapSubdivisions: 12,
-      tessellation: 12
+      width: .5,
     }, this.scene)
 
     this.playerObject.checkCollisions = true
@@ -29,7 +24,12 @@ export class PlayerController {
     this.playerObject.ellipsoid.scaleInPlace(.5)
 
     this.playerMaterial = new StandardMaterial('player', this.scene)
-    this.playerMaterial.diffuseColor = Color3.Purple()
+    this.playerMaterial.transparencyMode = Material.MATERIAL_ALPHATEST
+    this.playerMaterial.diffuseTexture = new Texture('/assets/player.png', this.scene, false, true, Texture.NEAREST_SAMPLINGMODE)
+    this.playerMaterial.diffuseTexture.hasAlpha = true
+    this.playerMaterial.useAlphaFromDiffuseTexture = true
+    this.playerMaterial.backFaceCulling = false
+    this.playerMaterial.specularColor = Color3.Black()
 
     this.playerObject.material = this.playerMaterial
 
@@ -77,7 +77,7 @@ export class PlayerController {
 
   private interactWithItem(callback: (mesh: Mesh) => void): void {
     const ray = new Ray(this.playerObject.position.add(new Vector3(0, -.5 + .2 / 2, 0)), this.playerObject.forward, .5)
-    const hits = ray.intersectsMeshes(this.items.itemMeshes as Array<DeepImmutable<Mesh>>)
+    const hits = ray.intersectsMeshes(this.items.itemMeshes as Array<DeepImmutable<AbstractMesh>>)
         
     hits.filter(x => x.hit).sort((a, b) => a.distance - b.distance).slice(0, 1).forEach(pickingInfo => {
       callback(pickingInfo.pickedMesh as Mesh)
@@ -86,7 +86,7 @@ export class PlayerController {
 
   private interactWithPerson(callback: (mesh: Mesh) => void): void {
     const ray = new Ray(this.playerObject.position, this.playerObject.forward, 3)
-    const hits = ray.intersectsMeshes(this.people.peopleMeshes as Array<DeepImmutable<Mesh>>)
+    const hits = ray.intersectsMeshes(this.people.peopleMeshes as Array<DeepImmutable<AbstractMesh>>)
         
     hits.filter(x => x.hit).sort((a, b) => a.distance - b.distance).slice(0, 1).forEach(pickingInfo => {
       callback(pickingInfo.pickedMesh as Mesh)

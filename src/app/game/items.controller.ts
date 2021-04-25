@@ -1,8 +1,8 @@
-import { AbstractMesh, BoxBuilder, Color3, DeepImmutable, Mesh, Ray, Scene, StandardMaterial, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { OverlayController } from "./overlay.controller"
 import * as seedrandom from 'seedrandom'
 import { quiz } from "./quiz"
-import { QuizItem, shuffle } from "./models"
+import { QuizItem } from "./models"
 import { MapController } from "./map.controller"
 import { LevelController } from "./level.controller"
 
@@ -16,20 +16,34 @@ export class ItemsController {
     } as QuizItem
   })
 
-  itemMeshes: Array<Mesh> = []
+  itemMeshes: Array<AbstractMesh> = []
 
   constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
 
     const rnd = seedrandom('items')
 
-    for(let i = 0; i < this.quizItems.length; i++) {
-      const mesh = BoxBuilder.CreateBox('item', {
-        height: .2,
-        depth: .2,
-        width: .2,
-      }, this.scene)
+    const base = PlaneBuilder.CreatePlane('item', {
+      height: .2,
+      width: .2,
+    }, this.scene)
 
-      mesh.ellipsoid.scaleInPlace(.2)
+    base.isVisible = false
+
+
+    const material = new StandardMaterial('item', this.scene)
+    material.transparencyMode = Material.MATERIAL_ALPHATEST
+    material.emissiveTexture = material.diffuseTexture = new Texture('/assets/mystery box.png', this.scene, false, true, Texture.NEAREST_SAMPLINGMODE)
+    material.diffuseTexture.hasAlpha = true
+    material.useAlphaFromDiffuseTexture = true
+    material.backFaceCulling = false
+    material.specularColor = Color3.Black()
+    material.linkEmissiveWithDiffuse = true
+    base.material = material
+
+    for(let i = 0; i < this.quizItems.length; i++) {
+      const mesh = base.createInstance('item')
+
+      mesh.billboardMode = Mesh.BILLBOARDMODE_Y
 
       for (let tries = 0; tries < 20; tries++) {
         mesh.position.copyFrom(new Vector3((rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), .2 / 2, (rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
@@ -41,13 +55,6 @@ export class ItemsController {
           break
         }
       }
-
-      const material = new StandardMaterial('player', this.scene)
-      material.diffuseColor = Color3.FromArray([ rnd(), rnd(), rnd() ])
-
-      mesh.material = material
-
-      const srnd = seedrandom(i.toString())
 
       mesh.metadata = {
         talkMesh: undefined as unknown as Mesh,

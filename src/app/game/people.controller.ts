@@ -1,5 +1,4 @@
-import { AbstractMesh, Color3, DeepImmutable, Mesh, Ray, Scene, StandardMaterial, Vector3 } from "@babylonjs/core"
-import { CapsuleBuilder } from "@babylonjs/core/Meshes/Builders/capsuleBuilder"
+import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { OverlayController } from "./overlay.controller"
 import * as seedrandom from 'seedrandom'
 import { quiz } from "./quiz"
@@ -27,18 +26,16 @@ export class PeopleController {
     const rnd = seedrandom('people')
 
     for(let i = 0; i < numberOfPeople; i++) {
-      const mesh = CapsuleBuilder.CreateCapsule('person', {
+      const mesh = PlaneBuilder.CreatePlane('person', {
         height: 1,
-        radius: .2,
-        subdivisions: 12,
-        capSubdivisions: 12,
-        bottomCapSubdivisions: 12,
-        tessellation: 12
+        width: .5
       }, this.scene)
 
       mesh.checkCollisions = true
 
       mesh.ellipsoid.scaleInPlace(.5)
+
+      mesh.billboardMode = Mesh.BILLBOARDMODE_Y
 
       for (let tries = 0; tries < 20; tries++) {
         mesh.position.copyFrom(new Vector3((rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), .5, (rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
@@ -52,8 +49,12 @@ export class PeopleController {
       }
 
       const material = new StandardMaterial('player', this.scene)
-      material.diffuseColor = Color3.FromArray([ rnd(), rnd(), rnd() ])
-
+      material.transparencyMode = Material.MATERIAL_ALPHATEST
+      material.diffuseTexture = new Texture('/assets/person 1.png', this.scene, false, true, Texture.NEAREST_SAMPLINGMODE)
+      material.diffuseTexture.hasAlpha = true
+      material.useAlphaFromDiffuseTexture = true
+      material.backFaceCulling = false
+      material.specularColor = Color3.Black()
       mesh.material = material
 
       const srnd = seedrandom(i.toString())

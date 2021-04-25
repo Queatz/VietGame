@@ -1,4 +1,4 @@
-import { AbstractMesh, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, HemisphericLight, InstancedMesh, Ray, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, HemisphericLight, InstancedMesh, Ray, Scene, SSAO2RenderingPipeline, SSAORenderingPipeline, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { InputController } from "./input.controller"
 import { MapController } from "./map.controller"
 import { PeopleController } from "./people.controller"
@@ -60,7 +60,7 @@ export class WorldController {
     this.camera.upperRadiusLimit = 20 / 2
     this.camera.cameraAcceleration = 0.025
     this.camera.rotationOffset = 180
-    this.camera.fov = .6
+    this.camera.fov = .5
     this.camera.maxZ = 200
     ;(this.camera.inputs.attached['mousewheel'] as FollowCameraMouseWheelInput).wheelPrecision = 1
     ;(this.camera.inputs.attached['pointers'] as FollowCameraPointersInput).angularSensibilityX = 2
@@ -102,6 +102,18 @@ export class WorldController {
     this.pipeline.fxaaEnabled = true
     this.pipeline.imageProcessingEnabled = true
     this.pipeline.imageProcessing.exposure = 1.5
+
+      const ssao = new SSAO2RenderingPipeline('ssao', this.scene, {
+        ssaoRatio: .5,
+        blurRatio: 1
+    })
+    ssao.radius = 16
+    ssao.totalStrength = 1
+    ssao.expensiveBlur = true
+    ssao.samples = 24
+    ssao.maxZ = this.camera.maxZ / 2
+    this.scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline('ssao', this.camera)
+
 
     this.lutPostProcess = new ColorCorrectionPostProcess(
       'color_correction',
