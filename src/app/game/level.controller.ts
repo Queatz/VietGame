@@ -1,15 +1,25 @@
-import { Color3, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, Mesh, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { BoxBuilder } from "@babylonjs/core/Meshes/Builders/boxBuilder"
 import * as seedrandom from 'seedrandom'
+import { MapController } from "./map.controller"
+import { Perlin } from "./noise"
 
 export class LevelController {
-  constructor(private scene: Scene) {
+  
+  walls = new Perlin(seedrandom('Vietnam'))
+
+  wallMeshes = [] as Array<AbstractMesh>
+
+  constructor(private scene: Scene, private map: MapController) {
 
     const wallMaterial = new StandardMaterial('wall', this.scene)
     const texture = new Texture('/assets/wall.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
     texture.vScale = 6
-    texture.uScale = 6 * (24 * 2 / 6)
+    texture.uScale = 6 * (this.map.mapSize * 2 / 6)
     wallMaterial.diffuseTexture = texture
+    wallMaterial.specularPower = 512
+
+    const ts = this.map.numTiles / this.map.mapSize
 
     ;[
       [-1, 0],
@@ -19,7 +29,7 @@ export class LevelController {
     ].forEach(wall => {
       const mesh = BoxBuilder.CreateBox('wall', {
         height: 6,
-        width: 24 * 2,
+        width: this.map.mapSize,
         depth: 1
       }, this.scene)
 
@@ -30,31 +40,61 @@ export class LevelController {
         mesh.rotate(Vector3.Up(), Math.PI / 2)
       }
 
-      mesh.position.addInPlace(new Vector3(wall[0], 0, wall[1]).scale(24))
+      mesh.position.addInPlace(new Vector3(wall[0], 0, wall[1]).scale(this.map.mapSize / 2 + .5))
+  
+      this.wallMeshes.push(mesh)
     })
 
-    const rnd = seedrandom('trees')
-    const rndMat = seedrandom('tree materials')
+    let base = undefined as unknown as Mesh
 
-    for (let i = 0; i < 25; i++) {
-      const mesh = BoxBuilder.CreateBox('tree', {
-        height: rnd() * 2 + 2,
-        width: rnd() * 2 + 2,
-        depth: rnd() * 1 + 1
-      }, this.scene)
+    for (let x = -this.map.numTiles / 2; x < this.map.numTiles / 2; x++) {
+      for (let y = -this.map.numTiles / 2; y < this.map.numTiles / 2; y++) {
+        const w = this.sampleWall(x, y)
 
-      if (rnd() < .5) {
-        mesh.rotate(Vector3.Up(), Math.PI / 2)
+        if (w <= .2) {
+          continue
+        }
+
+        const opts = {
+          height: 2,
+          width: ts,
+          depth: ts
+        }
+
+        let mesh: AbstractMesh
+
+        if (!base) {
+          mesh = base = BoxBuilder.CreateBox('tree', opts, this.scene)
+
+          const wallMaterial = new StandardMaterial('wall', this.scene)
+          const texture = new Texture('/assets/wall.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
+          texture.vScale = 3
+          texture.uScale = 1
+          wallMaterial.diffuseTexture = texture
+          wallMaterial.specularPower = 512
+          
+          base.material = wallMaterial
+        } else {
+          mesh = base!.createInstance('tree')
+        }
+
+        mesh.checkCollisions = true
+
+        const s = 3 * ((w - .2) / .8)
+
+        mesh.position.copyFrom(new Vector3(x * ts + ts / 2, opts.height / 2 + (s * opts.height / 2), y * ts + ts / 2))
+        mesh.scaling.copyFrom(new Vector3(1, 1 + s, 1))
+
+        this.wallMeshes.push(mesh)
       }
-
-      mesh.checkCollisions = true
-
-      mesh.position.addInPlace(new Vector3((rnd() - .5) * 2 * 20, 0, (rnd() - .5) * 2 * 20))
-
-      const material = new StandardMaterial('tree', this.scene)
-      material.diffuseColor = Color3.FromArray([.8 + rndMat() * .2, 1 - rndMat() * .4, 0])
-
-      mesh.material = material
     }
+  }
+ 
+  isWall(x: number, y: number): boolean {
+    return this.sampleWall(x, y) > .2
+  }
+ 
+  sampleWall(x: number, y: number): number {
+    return Math.abs(this.walls.sample(x / this.map.numTiles * 8, y / this.map.numTiles * 8))
   }
 }

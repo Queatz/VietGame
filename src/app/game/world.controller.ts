@@ -1,4 +1,4 @@
-import { CascadedShadowGenerator, Color3, Color4, CubeTexture, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, HemisphericLight, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, HemisphericLight, InstancedMesh, Ray, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { InputController } from "./input.controller"
 import { MapController } from "./map.controller"
 import { PeopleController } from "./people.controller"
@@ -7,6 +7,7 @@ import { BoxBuilder } from "@babylonjs/core/Meshes/Builders/boxBuilder"
 import { OverlayController } from "./overlay.controller"
 import { Observable } from "rxjs"
 import { LevelController } from "./level.controller"
+import { ItemsController } from "./items.controller"
 
 export class WorldController {
 
@@ -24,6 +25,8 @@ export class WorldController {
   overlay: OverlayController
   level: LevelController
   shadowGenerator: CascadedShadowGenerator
+  items: ItemsController
+  lutPostProcess: ColorCorrectionPostProcess
 
   constructor(private say: Observable<string>, private engine: Engine) {
     this.scene = new Scene(this.engine)
@@ -47,23 +50,22 @@ export class WorldController {
     overlayPipeline.samples = 4
     this.overlay = new OverlayController(this.overlayScene)
 
-
     this.camera = new FollowCamera('camera', new Vector3(0, 10, 0), this.scene)
     this.camera.attachControl(true)
     this.camera.radius = 10 / 2
     this.camera.heightOffset = 1.5
-    this.camera.lowerHeightOffsetLimit = 1 / 2
-    this.camera.upperHeightOffsetLimit = 20 / 2
+    this.camera.lowerHeightOffsetLimit = 0
+    this.camera.upperHeightOffsetLimit = 20
     this.camera.lowerRadiusLimit = 5 / 2
     this.camera.upperRadiusLimit = 20 / 2
     this.camera.cameraAcceleration = 0.025
     this.camera.rotationOffset = 180
     this.camera.fov = .6
-    this.camera.maxZ = 100
+    this.camera.maxZ = 200
     ;(this.camera.inputs.attached['mousewheel'] as FollowCameraMouseWheelInput).wheelPrecision = 1
     ;(this.camera.inputs.attached['pointers'] as FollowCameraPointersInput).angularSensibilityX = 2
     ;(this.camera.inputs.attached['pointers'] as FollowCameraPointersInput).angularSensibilityY = 8
-    this.camera.inputs.remove(this.camera.inputs.attached.keyboard);
+    this.camera.inputs.remove(this.camera.inputs.attached.keyboard)
 
     this.light = new DirectionalLight('light', new Vector3(-25, -10, 0).normalize(), this.scene)
     this.light.intensity = 1
@@ -76,8 +78,8 @@ export class WorldController {
     this.shadowGenerator.lambda = .667
     this.shadowGenerator.transparencyShadow = true
     this.shadowGenerator.enableSoftTransparentShadow = true
-    this.shadowGenerator.bias = .007
-    this.shadowGenerator.normalBias = .03
+    this.shadowGenerator.bias = .0035
+    this.shadowGenerator.normalBias = .02
     this.shadowGenerator.setDarkness(0.5)
     this.shadowGenerator.depthClamp = true
     this.shadowGenerator.stabilizeCascades = true
@@ -88,23 +90,37 @@ export class WorldController {
         if (mesh.name !== 'ground') {
           this.shadowGenerator.addShadowCaster(mesh)
         }
-        mesh.receiveShadows = true
+
+        if (!(mesh instanceof InstancedMesh)) {
+          mesh.receiveShadows = true
+        }
       }
     })
 
     this.pipeline = new DefaultRenderingPipeline('defaultPipeline', true, this.scene, [ this.camera ])
     this.pipeline.samples = 4
     this.pipeline.fxaaEnabled = true
+    this.pipeline.imageProcessingEnabled = true
+    this.pipeline.imageProcessing.exposure = 1.5
+
+    this.lutPostProcess = new ColorCorrectionPostProcess(
+      'color_correction',
+      'assets/Fuji XTrans III - Classic Chrome.png',
+      1.0,
+      this.camera
+    )
 
     this.map = new MapController(this.scene)
+    this.level = new LevelController(this.scene, this.map)
 
-    this.people = new PeopleController(this.overlay, this.scene)
+    this.people = new PeopleController(this.overlay, this.map, this.level, this.scene)
+    this.items = new ItemsController(this.overlay, this.map, this.level, this.scene)
 
-    this.player = new PlayerController(this.say, this.people, this.input, this.overlay, this.scene)
+    this.player = new PlayerController(this.say, this.people, this.items, this.input, this.overlay, this.scene)
 
     this.camera.lockedTarget = this.player.playerObject
 
-    const skybox = BoxBuilder.CreateBox('skyBox', { size: 85 }, this.scene)
+    const skybox = BoxBuilder.CreateBox('skyBox', { size: (this.map.mapSize * 2) }, this.scene)
     const skyboxMaterial = new StandardMaterial('skyBox', this.scene)
     skyboxMaterial.backFaceCulling = false
     skyboxMaterial.reflectionTexture = new CubeTexture('https://playground.babylonjs.com/textures/skybox', this.scene)
@@ -114,10 +130,16 @@ export class WorldController {
     skybox.material = skyboxMaterial
     skybox.applyFog = false
 
-    this.level = new LevelController(this.scene)
-
     this.scene.onBeforeRenderObservable.add(() => {
       this.update();
+
+      const d = Vector3.Distance(this.camera.position, this.player.playerObject.position)
+      const ray = new Ray(this.player.playerObject.position, this.camera.position.subtract(this.player.playerObject.position).normalize(), d)
+      const hits = ray.intersectsMeshes(this.level.wallMeshes as Array<DeepImmutable<AbstractMesh>>)
+          
+      if (hits?.[0]?.hit) {
+        this.camera.position.copyFrom(Vector3.Lerp(this.camera.position, hits[0]!.pickedPoint!, .125))
+      }
     })
   }
 

@@ -1,42 +1,11 @@
-import { Color3, Mesh, Scene, StandardMaterial, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, Color3, DeepImmutable, Mesh, Ray, Scene, StandardMaterial, Vector3 } from "@babylonjs/core"
 import { CapsuleBuilder } from "@babylonjs/core/Meshes/Builders/capsuleBuilder"
 import { OverlayController } from "./overlay.controller"
 import * as seedrandom from 'seedrandom'
-
-const quiz = `
-gấp đoi	Twice
-nửa tháng	Half a month
-một trăm rưởi	One hundred fifty
-hai năm rưỡi	Two years and a half
-một nửa	Half
-mươi	About 10
-một vài	2 or 3
-dăm	3 to 5
-một ít	A few
-một số	A number of
-nhiều	Many
-hơn	More than
-trên	Over
-chưa đến	Fewer than
-dưới	Under
-gần	Nearly
-đôi	Pair
-cặp	Couple
-`
-
-export class QuizItem {
-  question!: string
-  answer!: string
-}
-
-export function shuffle(rnd: any, array: Array<QuizItem>): Array<QuizItem> {
-  for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(rnd() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]]
-  }
-
-  return array
-}
+import { quiz } from "./quiz"
+import { QuizItem, shuffle } from "./models"
+import { MapController } from "./map.controller"
+import { LevelController } from "./level.controller"
 
 export class PeopleController {
 
@@ -50,11 +19,15 @@ export class PeopleController {
 
   peopleMeshes: Array<Mesh> = []
 
-  constructor(private overlay: OverlayController, private scene: Scene) {
+  constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
+
+    const numberOfCorrectAnswersPerQuestion = 5
+    const numberOfPeople = Math.ceil(numberOfCorrectAnswersPerQuestion * Math.sqrt(this.quizItems.length / numberOfCorrectAnswersPerQuestion))
+
     const rnd = seedrandom('people')
 
-    for(let i = 0; i < 10; i++) {
-      const mesh = CapsuleBuilder.CreateCapsule('player', {
+    for(let i = 0; i < numberOfPeople; i++) {
+      const mesh = CapsuleBuilder.CreateCapsule('person', {
         height: 1,
         radius: .2,
         subdivisions: 12,
@@ -67,7 +40,16 @@ export class PeopleController {
 
       mesh.ellipsoid.scaleInPlace(.5)
 
-      mesh.position.addInPlace(new Vector3((rnd() - .5) * 2 * 20, .5, (rnd() - .5) * 2 * 20))
+      for (let tries = 0; tries < 20; tries++) {
+        mesh.position.copyFrom(new Vector3((rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), .5, (rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
+      
+        const ray = new Ray(mesh.position.add(new Vector3(0, -2, 0)), Vector3.Up(), 10)
+        const hits = ray.intersectsMeshes(this.level.wallMeshes as Array<DeepImmutable<AbstractMesh>>, true)
+            
+        if (!hits?.[0]?.hit) {
+          break
+        }
+      }
 
       const material = new StandardMaterial('player', this.scene)
       material.diffuseColor = Color3.FromArray([ rnd(), rnd(), rnd() ])
@@ -83,7 +65,7 @@ export class PeopleController {
         nameMesh,
         talkMesh: undefined as unknown as Mesh,
         index: 0,
-        items: shuffle(srnd, [ ...this.quizItems ]),
+        items: shuffle(srnd, [ ...this.quizItems ]).slice(0, Math.ceil(this.quizItems.length * (numberOfCorrectAnswersPerQuestion / numberOfPeople))),
         ask: () => {
           if (mesh.metadata.talkMesh) {
             mesh.metadata.talkMesh.dispose()

@@ -4,6 +4,7 @@ import { CapsuleBuilder } from "@babylonjs/core/Meshes/Builders/capsuleBuilder"
 import { PeopleController } from "./people.controller"
 import { OverlayController } from "./overlay.controller"
 import { Observable } from "rxjs"
+import { ItemsController } from "./items.controller"
 
 
 export class PlayerController {
@@ -11,7 +12,7 @@ export class PlayerController {
   playerObject!: Mesh
   playerMaterial: StandardMaterial
 
-  constructor(private say: Observable<string>, private people: PeopleController, private input: InputController, private overlay: OverlayController, private scene: Scene) {
+  constructor(private say: Observable<string>, private people: PeopleController, private items: ItemsController, private input: InputController, private overlay: OverlayController, private scene: Scene) {
     this.playerObject = CapsuleBuilder.CreateCapsule('player', {
       height: 1,
       radius: .2,
@@ -68,6 +69,19 @@ export class PlayerController {
         person.metadata.ask()
       })
     }
+
+    this.interactWithItem(item => {
+      item.metadata.ask()
+    })
+  }
+
+  private interactWithItem(callback: (mesh: Mesh) => void): void {
+    const ray = new Ray(this.playerObject.position.add(new Vector3(0, -.5 + .2 / 2, 0)), this.playerObject.forward, .5)
+    const hits = ray.intersectsMeshes(this.items.itemMeshes as Array<DeepImmutable<Mesh>>)
+        
+    hits.filter(x => x.hit).sort((a, b) => a.distance - b.distance).slice(0, 1).forEach(pickingInfo => {
+      callback(pickingInfo.pickedMesh as Mesh)
+    })
   }
 
   private interactWithPerson(callback: (mesh: Mesh) => void): void {
