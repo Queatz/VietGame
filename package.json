@@ -19,7 +19,7 @@
     "@angular/platform-browser": "~11.2.6",
     "@angular/platform-browser-dynamic": "~11.2.6",
     "@angular/router": "~11.2.6",
-    "@babylonjs/core": "5.0.0-alpha.17",
+    "@babylonjs/core": "5.0.0-alpha.18",
     "rxjs": "~6.6.0",
     "seedrandom": "3.0.5",
     "tslib": "^2.0.0",

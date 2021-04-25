@@ -71,7 +71,7 @@ export class ItemsController {
 
           setTimeout(() => {
             mesh.isVisible = true
-          }, 8000)
+          }, 30000)
 
           mesh.metadata.talkMesh = this.overlay.text(`"${mesh.metadata.items[0].answer}" có nghĩa là "${mesh.metadata.items[0].question}"`, mesh, true)
         },

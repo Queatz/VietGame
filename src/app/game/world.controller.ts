@@ -1,9 +1,8 @@
-import { AbstractMesh, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, HemisphericLight, InstancedMesh, Ray, Scene, SSAO2RenderingPipeline, SSAORenderingPipeline, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, BoxBuilder, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, GlowLayer, HemisphericLight, InstancedMesh, Ray, Scene, SphereBuilder, SSAO2RenderingPipeline, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { InputController } from "./input.controller"
 import { MapController } from "./map.controller"
 import { PeopleController } from "./people.controller"
 import { PlayerController } from "./player.controller"
-import { BoxBuilder } from "@babylonjs/core/Meshes/Builders/boxBuilder"
 import { OverlayController } from "./overlay.controller"
 import { Observable } from "rxjs"
 import { LevelController } from "./level.controller"
@@ -38,8 +37,8 @@ export class WorldController {
     this.scene.fogMode = Scene.FOGMODE_LINEAR
     this.scene.fogStart = 5
     this.scene.fogEnd = 100
-    this.scene.fogColor = new Color3(110/255, 158/255, 169/255)
-    this.scene.clearColor = new Color4(0, 0, 0)
+    this.scene.fogColor = new Color3(.75, 0, .125)
+    this.scene.clearColor = new Color4(.75, 0, .125)
     this.scene.ambientColor = new Color3(0, 0, 0)
 
     this.overlayScene = new Scene(engine, { virtual: true })
@@ -74,6 +73,21 @@ export class WorldController {
     this.ambientLight = new HemisphericLight('ambientLight', this.light.direction.clone(), this.scene)
     this.ambientLight.intensity = .52
 
+    const sun = SphereBuilder.CreateSphere('sun', {
+      diameter: 2.5
+    })
+    sun.position.copyFrom(this.light.direction.negate().scale(50))
+
+    const sunMaterial = new StandardMaterial('sun', this.scene)
+    sunMaterial.emissiveColor = Color3.White().toLinearSpace().scale(100)
+    sunMaterial.specularColor = Color3.Black()
+    sunMaterial.diffuseColor = Color3.Black()
+    sun.material = sunMaterial
+
+    const gl = new GlowLayer('glow', this.scene)
+    gl.blurKernelSize = 96
+    gl.intensity = 1
+
     this.shadowGenerator = new CascadedShadowGenerator(1024, this.light, true)
     this.shadowGenerator.lambda = .667
     this.shadowGenerator.transparencyShadow = true
@@ -102,10 +116,15 @@ export class WorldController {
     this.pipeline.fxaaEnabled = true
     this.pipeline.imageProcessingEnabled = true
     this.pipeline.imageProcessing.exposure = 1.5
+    this.pipeline.bloomEnabled = true
+    this.pipeline.bloomThreshold = .75
+    this.pipeline.bloomWeight = 1.5
+    this.pipeline.bloomKernel = 96
+    this.pipeline.bloomScale = .5
 
-      const ssao = new SSAO2RenderingPipeline('ssao', this.scene, {
-        ssaoRatio: .5,
-        blurRatio: 1
+    const ssao = new SSAO2RenderingPipeline('ssao', this.scene, {
+      ssaoRatio: .5,
+      blurRatio: 1
     })
     ssao.radius = 16
     ssao.totalStrength = 1
@@ -118,7 +137,7 @@ export class WorldController {
     this.lutPostProcess = new ColorCorrectionPostProcess(
       'color_correction',
       'assets/Fuji XTrans III - Classic Chrome.png',
-      1.0,
+      1,
       this.camera
     )
 
@@ -132,15 +151,15 @@ export class WorldController {
 
     this.camera.lockedTarget = this.player.playerObject
 
-    const skybox = BoxBuilder.CreateBox('skyBox', { size: (this.map.mapSize * 2) }, this.scene)
-    const skyboxMaterial = new StandardMaterial('skyBox', this.scene)
-    skyboxMaterial.backFaceCulling = false
-    skyboxMaterial.reflectionTexture = new CubeTexture('https://playground.babylonjs.com/textures/skybox', this.scene)
-    skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE
-    skyboxMaterial.diffuseColor = new Color3(0, 0, 0)
-    skyboxMaterial.specularColor = new Color3(0, 0, 0)
-    skybox.material = skyboxMaterial
-    skybox.applyFog = false
+    // const skybox = BoxBuilder.CreateBox('skyBox', { size: (this.map.mapSize * 2) }, this.scene)
+    // const skyboxMaterial = new StandardMaterial('skyBox', this.scene)
+    // skyboxMaterial.backFaceCulling = false
+    // skyboxMaterial.reflectionTexture = new CubeTexture('https://playground.babylonjs.com/textures/skybox', this.scene)
+    // skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE
+    // skyboxMaterial.diffuseColor = new Color3(0, 0, 0)
+    // skyboxMaterial.specularColor = new Color3(0, 0, 0)
+    // skybox.material = skyboxMaterial
+    // skybox.applyFog = false
 
     this.scene.onBeforeRenderObservable.add(() => {
       this.update();
