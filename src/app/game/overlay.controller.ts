@@ -1,8 +1,7 @@
-import { Bone, AbstractMesh, Scene, DynamicTexture, StandardMaterial, MeshBuilder, Mesh, Vector3, Texture, Engine, Color3, Matrix, VertexBuffer, Scalar, Angle, FollowCamera } from '@babylonjs/core'
+import { AbstractMesh, Scene, DynamicTexture, StandardMaterial, MeshBuilder, Mesh, Vector3, Texture, Engine, Color3, VertexBuffer, Scalar, Angle, FollowCamera } from '@babylonjs/core'
 
 export class OverlayController {
   constructor(private scene: Scene) {
-
   }
 
   showInteractions(text: string, options: Array<[string, () => void]>, mesh: AbstractMesh, vanish: boolean): Array<Mesh> {
@@ -15,22 +14,22 @@ export class OverlayController {
   }
 
   text(text: string, mesh: AbstractMesh, vanish: boolean = false, position?: number, callback?: () => void): Mesh {
-    var font_size = 48
-    var font = 'normal ' + font_size + 'px Nunito, Arial, sans-serif'
+    const font_size = 48
+    const font = 'normal ' + font_size + 'px Nunito, Arial, sans-serif'
     
-    var planeHeight = .25
-    var DTHeight = 1.5 * font_size
-    var ratio = planeHeight / DTHeight
+    const planeHeight = .25
+    const DTHeight = 1.5 * font_size
+    const ratio = planeHeight / DTHeight
 
-    var temp = new DynamicTexture('DynamicTexture', 64, this.scene, false)
-    var tmpctx = temp.getContext()
+    const temp = new DynamicTexture('DynamicTexture', 64, this.scene, false)
+    const tmpctx = temp.getContext()
     tmpctx.font = font
-    var DTWidth = tmpctx.measureText(text).width + 32
+    const DTWidth = tmpctx.measureText(text).width + 32
     temp.dispose()
 
-    var planeWidth = DTWidth * ratio
+    const planeWidth = DTWidth * ratio
 
-    var dynamicTexture = new DynamicTexture('DynamicTexture',
+    const dynamicTexture = new DynamicTexture('DynamicTexture',
       { width: DTWidth, height: DTHeight },
       this.scene,
       false,
@@ -44,8 +43,8 @@ export class OverlayController {
     }
 
     dynamicTexture.drawText(text, null, null, font, (position || 0) > 1 ? '#B767D2' : vanish || position ? '#000000' : '#ffffff', null as any)
-    var mat = new StandardMaterial('mat', this.scene)
-    
+    const mat = new StandardMaterial('mat', this.scene)
+
     if (vanish || position) {
       mat.emissiveTexture = dynamicTexture
     } else {
@@ -54,10 +53,9 @@ export class OverlayController {
 
     mat.opacityTexture = dynamicTexture
     mat.disableLighting = true
-    mat.backFaceCulling = false//!!position
+    mat.backFaceCulling = false
 
-    //Create plane and set dynamic texture as material
-    var plane = MeshBuilder.CreatePlane('talk', { width: planeWidth, height: planeHeight, updatable: true }, this.scene)
+    const plane = MeshBuilder.CreatePlane('talk', { width: planeWidth, height: planeHeight, updatable: true }, this.scene)
     plane.material = mat
 
     if (position) {
@@ -65,7 +63,6 @@ export class OverlayController {
       plane.geometry!.updateVerticesData(VertexBuffer.PositionKind, p.map((value: number, index: number) => index % 3 === 0 ? value + (planeWidth / 2) : value))
     }
 
-    //plane.rotation.x = Math.PI
     plane.billboardMode = Mesh.BILLBOARDMODE_ALL
 
     const node = new Mesh('pivot', mesh.getScene())
@@ -81,7 +78,7 @@ export class OverlayController {
           Angle.FromRadians(camera.rotation.y).degrees(),
           Angle.FromRadians(mesh.absoluteRotationQuaternion.toEulerAngles().y).degrees()
         )) / 180
-        
+
         plane.visibility = Math.min(1, Math.max(0.01, 1 - Math.pow(1 - (final < .75 ? 0 : ((final - .75)) / .25), 4)))
       })
     } else if (vanish) {
@@ -92,7 +89,7 @@ export class OverlayController {
     } else {
       node.position.addInPlace(new Vector3(0, 1, 0))
     }
-    
+
     plane.parent = node
 
     plane.metadata = { callback }
@@ -101,8 +98,8 @@ export class OverlayController {
   }
 
   private canvasRoundRect(context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radius: number) {
-    var r = x + w
-    var b = y + h
+    const r = x + w
+    const b = y + h
     context.beginPath()
     context.moveTo(x + radius, y)
     context.lineTo(r - radius, y)

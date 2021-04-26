@@ -1,4 +1,4 @@
-import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, Sound, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { OverlayController } from "./overlay.controller"
 import * as seedrandom from 'seedrandom'
 import { quiz } from "./quiz"
@@ -18,7 +18,10 @@ export class PeopleController {
 
   peopleMeshes: Array<Mesh> = []
 
+  talkSound: Sound
+
   constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
+    this.talkSound = new Sound('get', '/assets/threeTone1.mp3', this.scene)
 
     const numberOfCorrectAnswersPerQuestion = 5
     const numberOfPeople = Math.ceil(numberOfCorrectAnswersPerQuestion * Math.sqrt(this.quizItems.length / numberOfCorrectAnswersPerQuestion))
@@ -30,19 +33,16 @@ export class PeopleController {
         height: 1,
         width: .5
       }, this.scene)
-
       mesh.checkCollisions = true
-
       mesh.ellipsoid.scaleInPlace(.5)
-
       mesh.billboardMode = Mesh.BILLBOARDMODE_Y
 
       for (let tries = 0; tries < 20; tries++) {
         mesh.position.copyFrom(new Vector3((rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), .5, (rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
-      
+
         const ray = new Ray(mesh.position.add(new Vector3(0, -2, 0)), Vector3.Up(), 10)
         const hits = ray.intersectsMeshes(this.level.wallMeshes as Array<DeepImmutable<AbstractMesh>>, true)
-            
+
         if (!hits?.[0]?.hit) {
           break
         }
@@ -58,7 +58,6 @@ export class PeopleController {
       mesh.material = material
 
       const srnd = seedrandom(i.toString())
-
       const name = names[Math.floor(srnd() * names.length)]
       const nameMesh = this.overlay.text(name, mesh)
 
@@ -68,6 +67,9 @@ export class PeopleController {
         index: 0,
         items: shuffle(srnd, [ ...this.quizItems ]).slice(0, Math.ceil(this.quizItems.length * (numberOfCorrectAnswersPerQuestion / numberOfPeople))),
         ask: () => {
+          this.talkSound.stop()
+          this.talkSound.play()
+
           if (mesh.metadata.talkMesh) {
             mesh.metadata.talkMesh.dispose()
           }

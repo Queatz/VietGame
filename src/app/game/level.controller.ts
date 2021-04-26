@@ -19,7 +19,7 @@ export class LevelController {
     wallMaterial.diffuseTexture = texture
     wallMaterial.specularPower = 512
 
-    const ts = this.map.numTiles / this.map.mapSize
+    const ts = this.map.mapSize / this.map.numTiles
 
     ;[
       [-1, 0],
@@ -45,7 +45,18 @@ export class LevelController {
       this.wallMeshes.push(mesh)
     })
 
-    let base = undefined as unknown as Mesh
+    const opts = {
+      height: 2,
+      width: ts,
+      depth: ts
+    }
+
+    const treeMaterial = new StandardMaterial('wall', this.scene)
+    const treeTexture = new Texture('/assets/wall.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
+    treeTexture.vScale = 3
+    treeTexture.uScale = 1
+    wallMaterial.diffuseTexture = treeTexture
+    wallMaterial.specularPower = 512
 
     for (let x = -this.map.numTiles / 2; x < this.map.numTiles / 2; x++) {
       for (let y = -this.map.numTiles / 2; y < this.map.numTiles / 2; y++) {
@@ -55,30 +66,10 @@ export class LevelController {
           continue
         }
 
-        const opts = {
-          height: 2,
-          width: ts,
-          depth: ts
-        }
-
         let mesh: AbstractMesh
 
-        if (!base) {
-          mesh = base = BoxBuilder.CreateBox('tree', opts, this.scene)
-
-          const wallMaterial = new StandardMaterial('wall', this.scene)
-          const texture = new Texture('/assets/wall.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
-          texture.vScale = 3
-          texture.uScale = 1
-          wallMaterial.diffuseTexture = texture
-          wallMaterial.specularPower = 512
-          
-          base.material = wallMaterial
-        } else {
-          mesh = base!.createInstance('tree')
-        }
-
-        mesh.checkCollisions = true
+        mesh = BoxBuilder.CreateBox('tree', opts, this.scene)
+        mesh.material = treeMaterial
 
         const s = 3 * ((w - .2) / .8)
 
@@ -88,6 +79,11 @@ export class LevelController {
         this.wallMeshes.push(mesh)
       }
     }
+
+    const merged = Mesh.MergeMeshes(this.wallMeshes as Array<Mesh>)!
+    merged.checkCollisions = true
+    
+    this.wallMeshes = [ merged ]
   }
  
   isWall(x: number, y: number): boolean {

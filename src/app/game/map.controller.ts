@@ -6,7 +6,7 @@ import { Perlin } from "./noise"
 export class MapController {
   
   readonly mapSize = 96
-  readonly numTiles = this.mapSize
+  readonly numTiles = this.mapSize / 2
   
   ground: Mesh
   groundMaterial: StandardMaterial
@@ -34,7 +34,7 @@ export class MapController {
     this.groundMaterial.diffuseTexture.wrapV = Texture.CLAMP_ADDRESSMODE
     this.groundMaterial.specularTexture.wrapU = Texture.CLAMP_ADDRESSMODE
     this.groundMaterial.specularTexture.wrapV = Texture.CLAMP_ADDRESSMODE
-    this.groundMaterial.specularColor = Color3.Gray()
+    this.groundMaterial.specularColor = Color3.FromArray([ .1, .1, .1 ])
 
     this.groundTileMaterial = new MultiMaterial('ground', this.scene)
     this.groundTileMaterial.subMaterials.push(this.groundMaterial)

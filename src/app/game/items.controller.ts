@@ -1,4 +1,4 @@
-import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, Sound, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { OverlayController } from "./overlay.controller"
 import * as seedrandom from 'seedrandom'
 import { quiz } from "./quiz"
@@ -18,7 +18,10 @@ export class ItemsController {
 
   itemMeshes: Array<AbstractMesh> = []
 
+  getSound: Sound
+
   constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
+    this.getSound = new Sound('get', '/assets/powerUp5.mp3', this.scene)
 
     const rnd = seedrandom('items')
 
@@ -28,7 +31,6 @@ export class ItemsController {
     }, this.scene)
 
     base.isVisible = false
-
 
     const material = new StandardMaterial('item', this.scene)
     material.transparencyMode = Material.MATERIAL_ALPHATEST
@@ -68,6 +70,8 @@ export class ItemsController {
           }
 
           mesh.isVisible = false
+
+          this.getSound.play()
 
           setTimeout(() => {
             mesh.isVisible = true

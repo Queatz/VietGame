@@ -1,4 +1,4 @@
-import { AbstractMesh, BoxBuilder, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, GlowLayer, HemisphericLight, InstancedMesh, Ray, Scene, SphereBuilder, SSAO2RenderingPipeline, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, BoxBuilder, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, GlowLayer, HemisphericLight, InstancedMesh, Ray, Scene, Sound, SphereBuilder, SSAO2RenderingPipeline, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { InputController } from "./input.controller"
 import { MapController } from "./map.controller"
 import { PeopleController } from "./people.controller"
@@ -26,10 +26,17 @@ export class WorldController {
   shadowGenerator: CascadedShadowGenerator
   items: ItemsController
   lutPostProcess: ColorCorrectionPostProcess
+  music: Sound
 
   constructor(private say: Observable<string>, private engine: Engine) {
     this.scene = new Scene(this.engine)
     this.input = new InputController(this.scene)
+
+    this.music = new Sound('music', '/assets/Next to You.mp3', this.scene, undefined, {
+      autoplay: true,
+      loop: true,
+      volume: .5
+    })
 
     const assumedFramesPerSecond = 120
     const earthGravity = -9.81
@@ -49,10 +56,10 @@ export class WorldController {
     overlayPipeline.samples = 4
     this.overlay = new OverlayController(this.overlayScene)
 
-    this.camera = new FollowCamera('camera', new Vector3(0, 10, 0), this.scene)
+    this.camera = new FollowCamera('camera', new Vector3(0, 1, 0), this.scene)
     this.camera.attachControl(true)
     this.camera.radius = 10 / 2
-    this.camera.heightOffset = 1.5
+    this.camera.heightOffset = 1
     this.camera.lowerHeightOffsetLimit = 0
     this.camera.upperHeightOffsetLimit = 20
     this.camera.lowerRadiusLimit = 5 / 2
@@ -84,9 +91,9 @@ export class WorldController {
     sunMaterial.diffuseColor = Color3.Black()
     sun.material = sunMaterial
 
-    const gl = new GlowLayer('glow', this.scene)
-    gl.blurKernelSize = 96
-    gl.intensity = 1
+    // const gl = new GlowLayer('glow', this.scene)
+    // gl.blurKernelSize = 96
+    // gl.intensity = 1
 
     this.shadowGenerator = new CascadedShadowGenerator(1024, this.light, true)
     this.shadowGenerator.lambda = .667
@@ -112,13 +119,13 @@ export class WorldController {
     })
 
     this.pipeline = new DefaultRenderingPipeline('defaultPipeline', true, this.scene, [ this.camera ])
-    this.pipeline.samples = 4
+    this.pipeline.samples = .25
     this.pipeline.fxaaEnabled = true
     this.pipeline.imageProcessingEnabled = true
     this.pipeline.imageProcessing.exposure = 1.5
     this.pipeline.bloomEnabled = true
     this.pipeline.bloomThreshold = .75
-    this.pipeline.bloomWeight = 1.5
+    this.pipeline.bloomWeight = 1
     this.pipeline.bloomKernel = 96
     this.pipeline.bloomScale = .5
 
@@ -132,7 +139,6 @@ export class WorldController {
     ssao.samples = 24
     ssao.maxZ = this.camera.maxZ / 2
     this.scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline('ssao', this.camera)
-
 
     this.lutPostProcess = new ColorCorrectionPostProcess(
       'color_correction',
