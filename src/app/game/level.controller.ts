@@ -8,18 +8,27 @@ export class LevelController {
   
   walls = new Perlin(seedrandom()) // 'Hoa'
 
+  wallMaterial: StandardMaterial
+
   wallMeshes = [] as Array<AbstractMesh>
 
   constructor(private scene: Scene, private map: MapController) {
-
-    const wallMaterial = new StandardMaterial('wall', this.scene)
+    this.wallMaterial = new StandardMaterial('wall', this.scene)
     const texture = new Texture('/assets/wall.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
     texture.vScale = 6
     texture.uScale = 6 * (this.map.mapSize * 2 / 6)
-    wallMaterial.diffuseTexture = texture
-    wallMaterial.specularPower = 512
+    this.wallMaterial.diffuseTexture = texture
+    this.wallMaterial.specularPower = 512
 
-    const ts = this.map.mapSize / this.map.numTiles
+    this.restart()
+  }
+  
+  restart() {
+    this.wallMeshes.forEach(mesh => {
+      mesh.dispose()
+    })
+
+    this.wallMeshes = []
 
     ;[
       [-1, 0],
@@ -34,7 +43,7 @@ export class LevelController {
       }, this.scene)
 
       mesh.checkCollisions = true
-      mesh.material = wallMaterial
+      mesh.material = this.wallMaterial
 
       if (wall[1] === 0) {
         mesh.rotate(Vector3.Up(), Math.PI / 2)
@@ -44,7 +53,8 @@ export class LevelController {
   
       this.wallMeshes.push(mesh)
     })
-
+    
+    const ts = this.map.mapSize / this.map.numTiles
     const opts = {
       height: 2,
       width: ts,
@@ -55,8 +65,8 @@ export class LevelController {
     const treeTexture = new Texture('/assets/wall.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
     treeTexture.vScale = 3
     treeTexture.uScale = 1
-    wallMaterial.diffuseTexture = treeTexture
-    wallMaterial.specularPower = 512
+    treeMaterial.diffuseTexture = treeTexture
+    treeMaterial.specularPower = 512
 
     for (let x = -this.map.numTiles / 2; x < this.map.numTiles / 2; x++) {
       for (let y = -this.map.numTiles / 2; y < this.map.numTiles / 2; y++) {

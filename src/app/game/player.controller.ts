@@ -23,9 +23,7 @@ export class PlayerController {
 
     this.playerObject.checkCollisions = true
 
-    this.playerObject.position.copyFrom(this.level.bestStartingPos())
-
-    this.playerObject.position.addInPlace(new Vector3(0, .5, 0))
+    this.restart()
     
     this.playerObject.ellipsoid.scaleInPlace(.5)
 
@@ -101,6 +99,11 @@ export class PlayerController {
         this.personInteract = undefined
       }
     }
+  }
+  
+  restart() {
+    this.playerObject.position.copyFrom(this.level.bestStartingPos())
+    this.playerObject.position.addInPlace(new Vector3(0, .5, 0))
   }
 
   private interactWithItem(callback: (mesh: Mesh) => void): void {

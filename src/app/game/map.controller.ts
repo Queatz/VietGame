@@ -8,11 +8,17 @@ export class MapController {
   readonly mapSize = 32
   readonly numTiles = this.mapSize / 2
   
-  ground: Mesh
-  groundMaterial: StandardMaterial
-  groundTileMaterial: MultiMaterial
+  ground!: Mesh
+  groundMaterial!: StandardMaterial
+  groundTileMaterial!: MultiMaterial
 
   constructor(private scene: Scene) {
+    this.restart()
+  }
+  
+  restart() {
+    this.ground?.dispose()
+
     this.ground = GroundBuilder.CreateTiledGround('ground', {
       xmin: -this.mapSize / 2,
       zmin: -this.mapSize / 2,
@@ -27,22 +33,24 @@ export class MapController {
 
     this.ground.checkCollisions = true
 
-    this.groundMaterial = new StandardMaterial('ground', this.scene)
-    this.groundMaterial.diffuseTexture = new Texture('/assets/dirt.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
-    this.groundMaterial.specularTexture = this.groundMaterial.diffuseTexture
-    this.groundMaterial.diffuseTexture.wrapU = Texture.CLAMP_ADDRESSMODE
-    this.groundMaterial.diffuseTexture.wrapV = Texture.CLAMP_ADDRESSMODE
-    this.groundMaterial.specularTexture.wrapU = Texture.CLAMP_ADDRESSMODE
-    this.groundMaterial.specularTexture.wrapV = Texture.CLAMP_ADDRESSMODE
-    this.groundMaterial.specularColor = Color3.FromArray([ .1, .1, .1 ])
+    if (!this.groundMaterial) {
+      this.groundMaterial = new StandardMaterial('ground', this.scene)
+      this.groundMaterial.diffuseTexture = new Texture('/assets/dirt.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
+      this.groundMaterial.specularTexture = this.groundMaterial.diffuseTexture
+      this.groundMaterial.diffuseTexture.wrapU = Texture.CLAMP_ADDRESSMODE
+      this.groundMaterial.diffuseTexture.wrapV = Texture.CLAMP_ADDRESSMODE
+      this.groundMaterial.specularTexture.wrapU = Texture.CLAMP_ADDRESSMODE
+      this.groundMaterial.specularTexture.wrapV = Texture.CLAMP_ADDRESSMODE
+      this.groundMaterial.specularColor = Color3.FromArray([ .1, .1, .1 ])
 
-    this.groundTileMaterial = new MultiMaterial('ground', this.scene)
-    this.groundTileMaterial.subMaterials.push(this.groundMaterial)
+      this.groundTileMaterial = new MultiMaterial('ground', this.scene)
+      this.groundTileMaterial.subMaterials.push(this.groundMaterial)
+    }
 
     this.ground.material = this.groundTileMaterial
 
-    const verticesCount = this.ground.getTotalVertices()
-    const tileIndicesLength = this.ground.getIndices()!.length / (this.numTiles * this.numTiles)
+    // const verticesCount = this.ground.getTotalVertices()
+    // const tileIndicesLength = this.ground.getIndices()!.length / (this.numTiles * this.numTiles)
     
     // this.ground.subMeshes = []
     // let base = 0

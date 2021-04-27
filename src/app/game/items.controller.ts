@@ -4,26 +4,29 @@ import * as seedrandom from 'seedrandom'
 import { quiz } from "./quiz"
 import { MapController } from "./map.controller"
 import { LevelController } from "./level.controller"
+import { QuizItem } from "./models"
 
 export class ItemsController {
 
-  quizItems = [ ...quiz ]
+  quizItems = [] as Array<QuizItem>
 
   itemMeshes: Array<AbstractMesh> = []
 
   getSound: Sound
+  base: Mesh
+  rnd: any
 
   constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
     this.getSound = new Sound('get', '/assets/powerUp5.mp3', this.scene)
 
-    const rnd = seedrandom()
+    this.rnd = seedrandom()
 
-    const base = PlaneBuilder.CreatePlane('item', {
+    this.base = PlaneBuilder.CreatePlane('item', {
       height: .2,
       width: .2,
     }, this.scene)
 
-    base.isVisible = false
+    this.base.isVisible = false
 
     const material = new StandardMaterial('item', this.scene)
     material.transparencyMode = Material.MATERIAL_ALPHATEST
@@ -33,15 +36,27 @@ export class ItemsController {
     material.backFaceCulling = false
     material.specularColor = Color3.Black()
     material.linkEmissiveWithDiffuse = true
-    base.material = material
+    this.base.material = material
+
+    this.restart()
+  }
+  
+  restart() {
+    this.quizItems = [ ...quiz ]
+
+    this.itemMeshes.forEach(mesh => {
+      mesh.dispose()
+    })
+
+    this.itemMeshes = []
 
     for(let i = 0; i < this.quizItems.length; i++) {
-      const mesh = base.createInstance('item')
+      const mesh = this.base.createInstance('item')
 
       mesh.billboardMode = Mesh.BILLBOARDMODE_Y
 
       for (let tries = 0; tries < 20; tries++) {
-        mesh.position.copyFrom(new Vector3((rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), .2 / 2, (rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
+        mesh.position.copyFrom(new Vector3((this.rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), .2 / 2, (this.rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
       
         const ray = new Ray(mesh.position.add(new Vector3(0, -2, 0)), Vector3.Up(), 10)
         const hits = ray.intersectsMeshes(this.level.wallMeshes as Array<DeepImmutable<AbstractMesh>>, true)

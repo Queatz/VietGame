@@ -1006,11 +1006,18 @@ yên tĩnh	quiet
 yêu	to love
 yếu	weak
 `
-export const quiz = shuffle(seedrandom(), quizRaw.trim().split('\n').map(item => {
-  const x = item.split('\t')
-  return {
-    answer: x[0].trim(),
-    question: x[1].trim()
-  } as QuizItem
-})
-).slice(0, 10)
+export const quiz = [] as Array<QuizItem>
+
+export function restartQuiz() {
+  quiz.length = 0
+  quiz.push(...shuffle(seedrandom(), quizRaw.trim().split('\n').map(item => {
+    const x = item.split('\t')
+    return {
+      answer: x[0].trim(),
+      question: x[1].trim()
+    } as QuizItem
+  })
+  ).slice(0, 10))
+}
+
+restartQuiz()

@@ -2,13 +2,14 @@ import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray,
 import { OverlayController } from "./overlay.controller"
 import * as seedrandom from 'seedrandom'
 import { quiz } from "./quiz"
-import { shuffle } from "./models"
+import { QuizItem, shuffle } from "./models"
 import { MapController } from "./map.controller"
 import { LevelController } from "./level.controller"
+import { WorldController } from "./world.controller"
 
 export class PeopleController {
 
-  quizItems = [ ...quiz ]
+  quizItems = [] as Array<QuizItem>
 
   peopleMeshes: Array<Mesh> = []
 
@@ -18,12 +19,24 @@ export class PeopleController {
   numberOfCorrectAnswersPerQuestion: number
   numberOfPeople: number
 
-  constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
+  constructor(private world: WorldController, private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
     this.talkSound = new Sound('get', '/assets/threeTone1.mp3', this.scene)
     this.completeSound = new Sound('get', '/assets/highUp.mp3', this.scene)
 
     this.numberOfCorrectAnswersPerQuestion = 5
     this.numberOfPeople = Math.ceil(this.numberOfCorrectAnswersPerQuestion * Math.sqrt(this.quizItems.length / this.numberOfCorrectAnswersPerQuestion))
+  
+    this.restart()
+  }
+  
+  restart() {
+    this.quizItems = [ ...quiz ]
+
+    this.peopleMeshes.forEach(mesh => {
+      mesh.dispose()
+    })
+    
+    this.peopleMeshes = []
 
     const rnd = seedrandom()
 
@@ -132,8 +145,12 @@ export class PeopleController {
           mesh.metadata.nameMesh = this.overlay.text(`${name} (${mesh.metadata.index}/${mesh.metadata.items.length})`, mesh)
 
           if (mesh.metadata.index >= mesh.metadata.items.length) {
-            mesh.metadata.talkMesh = this.overlay.text('Đúng! Đó là tất cả!', mesh, true)
+            mesh.metadata.talkMesh = this.overlay.text(mesh.metadata.isBoss ? 'Chúc mừng!' : 'Đúng! Đó là tất cả!', mesh, true)
             this.completeSound.play()
+
+            if (mesh.metadata.isBoss) {
+              this.world.restart()
+            }
           } else {
             mesh.metadata.talkMesh = this.overlay.text('Đúng!', mesh, true)
           }
@@ -147,6 +164,10 @@ export class PeopleController {
       },
       leave: () => {
         if (mesh.metadata.isBoss) {
+          if (mesh.metadata.index >= mesh.metadata.items.length) {
+            return
+          }
+
           mesh.metadata.talkMesh?.dispose()
           mesh.metadata.talkMesh = this.overlay.text('Tạm biệt!', mesh, true)
           mesh.metadata.index = 0

@@ -7,24 +7,26 @@ import { OverlayController } from "./overlay.controller"
 import { Observable } from "rxjs"
 import { LevelController } from "./level.controller"
 import { ItemsController } from "./items.controller"
+import { restartQuiz } from "./quiz"
 
 export class WorldController {
 
-  camera: FollowCamera
-  scene: Scene
+  input: InputController
+  overlay: OverlayController
+  level: LevelController
+  items: ItemsController
+  people: PeopleController
   player: PlayerController
   map: MapController
-  input: InputController
+
+  camera: FollowCamera
+  scene: Scene
   pipeline: DefaultRenderingPipeline
   light: DirectionalLight
   ambientLight: HemisphericLight
-  people: PeopleController
   overlayScene: Scene
   overlaySceneCamera: FreeCamera
-  overlay: OverlayController
-  level: LevelController
   shadowGenerator: CascadedShadowGenerator
-  items: ItemsController
   lutPostProcess: ColorCorrectionPostProcess
   music: Sound
 
@@ -151,7 +153,7 @@ export class WorldController {
     this.map = new MapController(this.scene)
     this.level = new LevelController(this.scene, this.map)
 
-    this.people = new PeopleController(this.overlay, this.map, this.level, this.scene)
+    this.people = new PeopleController(this, this.overlay, this.map, this.level, this.scene)
     this.items = new ItemsController(this.overlay, this.map, this.level, this.scene)
 
     this.player = new PlayerController(this.say, this.people, this.items, this.input, this.overlay, this.scene, this.level)
@@ -179,6 +181,15 @@ export class WorldController {
         this.camera.position.copyFrom(Vector3.Lerp(this.camera.position, hits[0]!.pickedPoint!, .125))
       }
     })
+  }
+
+  restart(): void {
+    restartQuiz()
+    this.level.restart()
+    this.items.restart()
+    this.people.restart()
+    this.map.restart()
+    this.player.restart()
   }
 
   update(): void {
