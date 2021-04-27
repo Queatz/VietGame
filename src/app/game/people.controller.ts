@@ -16,21 +16,21 @@ export class PeopleController {
   talkSound: Sound
   completeSound: Sound
 
-  numberOfCorrectAnswersPerQuestion: number
-  numberOfPeople: number
+  numberOfCorrectAnswersPerQuestion!: number
+  numberOfPeople!: number
 
   constructor(private world: WorldController, private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
     this.talkSound = new Sound('get', '/assets/threeTone1.mp3', this.scene)
     this.completeSound = new Sound('get', '/assets/highUp.mp3', this.scene)
-
-    this.numberOfCorrectAnswersPerQuestion = 5
-    this.numberOfPeople = Math.ceil(this.numberOfCorrectAnswersPerQuestion * Math.sqrt(this.quizItems.length / this.numberOfCorrectAnswersPerQuestion))
   
     this.restart()
   }
   
   restart() {
     this.quizItems = [ ...quiz ]
+
+    this.numberOfCorrectAnswersPerQuestion = 5
+    this.numberOfPeople = Math.ceil(this.numberOfCorrectAnswersPerQuestion * Math.sqrt(this.quizItems.length / this.numberOfCorrectAnswersPerQuestion))
 
     this.peopleMeshes.forEach(mesh => {
       mesh.dispose()
@@ -138,6 +138,11 @@ export class PeopleController {
       },
       say: (text: string) => {
         mesh.metadata.talkMesh?.dispose()
+
+        if (mesh.metadata.index >= mesh.metadata.items.length) {
+          mesh.metadata.talkMesh = this.overlay.text('Đó là tất cả!', mesh, true)
+          return
+        }
 
         if (mesh.metadata.items[mesh.metadata.index].answer.trim() === text) {
           mesh.metadata.index++

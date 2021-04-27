@@ -29,6 +29,7 @@ export class LevelController {
     })
 
     this.wallMeshes = []
+    const borderWallMeshes = [] as Array<AbstractMesh>
 
     ;[
       [-1, 0],
@@ -50,8 +51,8 @@ export class LevelController {
       }
 
       mesh.position.addInPlace(new Vector3(wall[0], 0, wall[1]).scale(this.map.mapSize / 2 + .5))
-  
-      this.wallMeshes.push(mesh)
+
+      borderWallMeshes.push(mesh)
     })
     
     const ts = this.map.mapSize / this.map.numTiles
@@ -93,7 +94,7 @@ export class LevelController {
     const merged = Mesh.MergeMeshes(this.wallMeshes as Array<Mesh>)!
     merged.checkCollisions = true
     
-    this.wallMeshes = [ merged ]
+    this.wallMeshes = [ ...borderWallMeshes, merged ]
   }
  
   isWall(x: number, y: number): boolean {
