@@ -15,16 +15,19 @@ export class PeopleController {
   talkSound: Sound
   completeSound: Sound
 
+  numberOfCorrectAnswersPerQuestion: number
+  numberOfPeople: number
+
   constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
     this.talkSound = new Sound('get', '/assets/threeTone1.mp3', this.scene)
     this.completeSound = new Sound('get', '/assets/highUp.mp3', this.scene)
 
-    const numberOfCorrectAnswersPerQuestion = 5
-    const numberOfPeople = Math.ceil(numberOfCorrectAnswersPerQuestion * Math.sqrt(this.quizItems.length / numberOfCorrectAnswersPerQuestion))
+    this.numberOfCorrectAnswersPerQuestion = 5
+    this.numberOfPeople = Math.ceil(this.numberOfCorrectAnswersPerQuestion * Math.sqrt(this.quizItems.length / this.numberOfCorrectAnswersPerQuestion))
 
     const rnd = seedrandom()
 
-    for(let i = 0; i < numberOfPeople; i++) {
+    const makePersonMesh = () => {
       const mesh = PlaneBuilder.CreatePlane('person', {
         height: 1,
         width: .5
@@ -33,6 +36,10 @@ export class PeopleController {
       mesh.ellipsoid.scaleInPlace(.5)
       mesh.billboardMode = Mesh.BILLBOARDMODE_Y
 
+      return mesh
+    }
+
+    const positionMeshSafe = (mesh: Mesh) => {
       for (let tries = 0; tries < 20; tries++) {
         mesh.position.copyFrom(new Vector3((rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), .5, (rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
 
@@ -43,68 +50,110 @@ export class PeopleController {
           break
         }
       }
+    }
 
-      const srnd = seedrandom() // i.toString()
+    const makeMaterial = (person: string) => {
+      const material = new StandardMaterial('player', this.scene)
+        material.transparencyMode = Material.MATERIAL_ALPHATEST
+        material.diffuseTexture = new Texture(`/assets/person ${person}.png`, this.scene, false, true, Texture.NEAREST_SAMPLINGMODE)
+        material.diffuseTexture.hasAlpha = true
+        material.useAlphaFromDiffuseTexture = true
+        material.backFaceCulling = false
+        material.specularColor = Color3.Black()
+        return material
+    }
+
+    const mats = {
+      girl: makeMaterial('1'),
+      boy: makeMaterial('2'),
+      boss: makeMaterial('3'),
+    }
+
+    const srnd = seedrandom()
+
+    for(let i = 0; i < this.numberOfPeople; i++) {
+      const mesh = makePersonMesh()
+
+      positionMeshSafe(mesh)
       const sex = Math.floor(srnd() * 2)
       const name = names[sex][Math.floor(srnd() * names[sex].length)]
       const nameMesh = this.overlay.text(name, mesh)
-
-      const material = new StandardMaterial('player', this.scene)
-      material.transparencyMode = Material.MATERIAL_ALPHATEST
-      material.diffuseTexture = new Texture(`/assets/person ${sex ? '1' : '2'}.png`, this.scene, false, true, Texture.NEAREST_SAMPLINGMODE)
-      material.diffuseTexture.hasAlpha = true
-      material.useAlphaFromDiffuseTexture = true
-      material.backFaceCulling = false
-      material.specularColor = Color3.Black()
-      mesh.material = material
-
-      mesh.metadata = {
-        nameMesh,
-        talkMesh: undefined as unknown as Mesh,
-        index: 0,
-        items: shuffle(srnd, [ ...this.quizItems ]).slice(0, Math.ceil(this.quizItems.length * (numberOfCorrectAnswersPerQuestion / numberOfPeople))),
-        ask: () => {
-          this.talkSound.stop()
-          this.talkSound.play()
-
-          if (mesh.metadata.talkMesh) {
-            mesh.metadata.talkMesh.dispose()
-          }
-
-          if (mesh.metadata.index >= mesh.metadata.items.length) {
-            mesh.metadata.talkMesh = this.overlay.text('Đó là tất cả!', mesh, true)
-          } else {
-            mesh.metadata.talkMesh = this.overlay.text(mesh.metadata.items[mesh.metadata.index].question, mesh, true)
-          }
-        },
-        say: (text: string) => {
-          if (mesh.metadata.talkMesh) {
-            mesh.metadata.talkMesh.dispose()
-          }
-
-          if (mesh.metadata.items[mesh.metadata.index].answer.trim() === text) {
-            mesh.metadata.index++
-            mesh.metadata.nameMesh.dispose()
-            mesh.metadata.nameMesh = this.overlay.text(`${name} (${mesh.metadata.index}/${mesh.metadata.items.length})`, mesh)
-
-            if (mesh.metadata.index >= mesh.metadata.items.length) {
-              mesh.metadata.talkMesh = this.overlay.text('Đúng! Đó là tất cả!', mesh, true)
-              this.completeSound.play()
-              material.diffuseColor = Color3.White()
-            } else {
-              mesh.metadata.talkMesh = this.overlay.text('Đúng!', mesh, true)
-            }
-          } else {
-            const hint = false ? ` Nó là "${mesh.metadata.items[mesh.metadata.index].answer}".` : ''
-            mesh.metadata.talkMesh = this.overlay.text(`Không chính xác!${hint}`, mesh, true)
-            mesh.metadata.index = Math.max(0, mesh.metadata.index - 2)
-            mesh.metadata.nameMesh.dispose()
-            mesh.metadata.nameMesh = this.overlay.text(`${name} (${mesh.metadata.index}/${mesh.metadata.items.length})`, mesh)
-          }
-        }
-      }
+      mesh.material = sex === 0 ? mats.girl : mats.boy
+      mesh.metadata = this.genMeta(srnd, mesh, name, nameMesh)
 
       this.peopleMeshes.push(mesh)
+    }
+
+    const mesh = makePersonMesh()
+
+    positionMeshSafe(mesh)
+
+    const name = names[0][Math.floor(srnd() * names[0].length)]
+    const nameMesh = this.overlay.text(name, mesh)
+    mesh.material = mats.boss
+    mesh.metadata = this.genMeta(srnd, mesh, name, nameMesh, true)
+
+    this.peopleMeshes.push(mesh)
+  }
+
+  genMeta(srnd: any, mesh: Mesh, name: string, nameMesh: Mesh, isBoss = false) {
+    return {
+      isBoss,
+      nameMesh,
+      talkMesh: undefined as unknown as Mesh,
+      index: 0,
+      items: (() => {
+        if (isBoss) {
+          return shuffle(srnd, [ ...this.quizItems ])
+        } else {
+          return shuffle(srnd, [ ...this.quizItems ]).slice(0, Math.ceil(this.quizItems.length * (this.numberOfCorrectAnswersPerQuestion / this.numberOfPeople)))
+        }
+      })(),
+      ask: () => {
+        this.talkSound.stop()
+        this.talkSound.play()
+
+        if (mesh.metadata.talkMesh) {
+          mesh.metadata.talkMesh.dispose()
+        }
+
+        if (mesh.metadata.index >= mesh.metadata.items.length) {
+          mesh.metadata.talkMesh = this.overlay.text('Đó là tất cả!', mesh, true)
+        } else {
+          mesh.metadata.talkMesh = this.overlay.text(mesh.metadata.items[mesh.metadata.index].question, mesh, true)
+        }
+      },
+      say: (text: string) => {
+        mesh.metadata.talkMesh?.dispose()
+
+        if (mesh.metadata.items[mesh.metadata.index].answer.trim() === text) {
+          mesh.metadata.index++
+          mesh.metadata.nameMesh.dispose()
+          mesh.metadata.nameMesh = this.overlay.text(`${name} (${mesh.metadata.index}/${mesh.metadata.items.length})`, mesh)
+
+          if (mesh.metadata.index >= mesh.metadata.items.length) {
+            mesh.metadata.talkMesh = this.overlay.text('Đúng! Đó là tất cả!', mesh, true)
+            this.completeSound.play()
+          } else {
+            mesh.metadata.talkMesh = this.overlay.text('Đúng!', mesh, true)
+          }
+        } else {
+          const hint = false ? ` Nó là "${mesh.metadata.items[mesh.metadata.index].answer}".` : ''
+          mesh.metadata.talkMesh = this.overlay.text(`Không chính xác!${hint}`, mesh, true)
+          mesh.metadata.index = mesh.metadata.isBoss ? 0 : Math.max(0, mesh.metadata.index - 2)
+          mesh.metadata.nameMesh.dispose()
+          mesh.metadata.nameMesh = this.overlay.text(`${name} (${mesh.metadata.index}/${mesh.metadata.items.length})`, mesh)
+        }
+      },
+      leave: () => {
+        if (mesh.metadata.isBoss) {
+          mesh.metadata.talkMesh?.dispose()
+          mesh.metadata.talkMesh = this.overlay.text('Tạm biệt!', mesh, true)
+          mesh.metadata.index = 0
+          mesh.metadata.nameMesh.dispose()
+          mesh.metadata.nameMesh = this.overlay.text(name, mesh)
+        }
+      }
     }
   }
 }

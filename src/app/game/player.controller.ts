@@ -12,6 +12,9 @@ export class PlayerController {
   playerObject!: Mesh
   playerMaterial: StandardMaterial
 
+  personInteractLeaveCallback?: () => void
+  personInteract?: Mesh
+
   constructor(private say: Observable<string>, private people: PeopleController, private items: ItemsController, private input: InputController, private overlay: OverlayController, private scene: Scene, private level: LevelController) {
     this.playerObject = PlaneBuilder.CreatePlane('player', {
       height: 1,
@@ -79,12 +82,25 @@ export class PlayerController {
     if (this.input.pressed('Enter')) {
       this.interactWithPerson(person => {
         person.metadata.ask()
+      }, person => {
+        person.metadata.leave?.()
       })
     }
 
     this.interactWithItem(item => {
       item.metadata.ask()
     })
+
+    if (this.personInteractLeaveCallback) {
+      const ray = new Ray(this.playerObject.position, this.playerObject.forward, 3)
+      const hit = ray.intersectsMesh(this.personInteract as DeepImmutable<AbstractMesh>)
+
+      if (!hit.hit) {
+        this.personInteractLeaveCallback?.()
+        this.personInteractLeaveCallback = undefined
+        this.personInteract = undefined
+      }
+    }
   }
 
   private interactWithItem(callback: (mesh: Mesh) => void): void {
@@ -96,11 +112,18 @@ export class PlayerController {
     })
   }
 
-  private interactWithPerson(callback: (mesh: Mesh) => void): void {
+  private interactWithPerson(callback: (mesh: Mesh) => void, leaveCallback?: (mesh: Mesh) => void): void {
     const ray = new Ray(this.playerObject.position, this.playerObject.forward, 3)
     const hits = ray.intersectsMeshes(this.people.peopleMeshes as Array<DeepImmutable<AbstractMesh>>)
         
     hits.filter(x => x.hit).sort((a, b) => a.distance - b.distance).slice(0, 1).forEach(pickingInfo => {
+      if (leaveCallback) {
+        this.personInteract = pickingInfo.pickedMesh as Mesh
+        this.personInteractLeaveCallback = () => {
+          leaveCallback?.(pickingInfo.pickedMesh as Mesh)
+        }
+      }
+
       callback(pickingInfo.pickedMesh as Mesh)
     })
   }
