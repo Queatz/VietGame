@@ -13,11 +13,11 @@ export class OverlayController {
     ];
   }
 
-  text(text: string, mesh: AbstractMesh, vanish: boolean = false, position?: number, callback?: () => void): Mesh {
-    const font_size = 48
+  text(text: string, mesh: AbstractMesh, vanish: boolean = false, position?: number, callback?: () => void, fontSize = 1, offset: number = 1): Mesh {
+    const font_size = 48 * fontSize
     const font = 'normal ' + font_size + 'px Nunito, Arial, sans-serif'
     
-    const planeHeight = .25
+    const planeHeight = .25 * fontSize
     const DTHeight = 1.5 * font_size
     const ratio = planeHeight / DTHeight
 
@@ -87,7 +87,7 @@ export class OverlayController {
       }, 4000)
       node.position.addInPlace(new Vector3(0, .75, 0))
     } else {
-      node.position.addInPlace(new Vector3(0, 1, 0))
+      node.position.addInPlace(new Vector3(0, offset, 0))
     }
 
     plane.parent = node

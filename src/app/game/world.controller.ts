@@ -66,7 +66,7 @@ export class WorldController {
     this.camera.upperRadiusLimit = 20 / 2
     this.camera.cameraAcceleration = 0.025
     this.camera.rotationOffset = 180
-    this.camera.fov = .5
+    this.camera.fov = .667
     this.camera.maxZ = 200
     ;(this.camera.inputs.attached['mousewheel'] as FollowCameraMouseWheelInput).wheelPrecision = 1
     ;(this.camera.inputs.attached['pointers'] as FollowCameraPointersInput).angularSensibilityX = 2
@@ -90,6 +90,7 @@ export class WorldController {
     sunMaterial.specularColor = Color3.Black()
     sunMaterial.diffuseColor = Color3.Black()
     sun.material = sunMaterial
+    sun.applyFog = false
 
     // const gl = new GlowLayer('glow', this.scene)
     // gl.blurKernelSize = 96
@@ -153,7 +154,7 @@ export class WorldController {
     this.people = new PeopleController(this.overlay, this.map, this.level, this.scene)
     this.items = new ItemsController(this.overlay, this.map, this.level, this.scene)
 
-    this.player = new PlayerController(this.say, this.people, this.items, this.input, this.overlay, this.scene)
+    this.player = new PlayerController(this.say, this.people, this.items, this.input, this.overlay, this.scene, this.level)
 
     this.camera.lockedTarget = this.player.playerObject
 

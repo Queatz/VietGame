@@ -5,7 +5,7 @@ import { Perlin } from "./noise"
 
 export class MapController {
   
-  readonly mapSize = 96
+  readonly mapSize = 32
   readonly numTiles = this.mapSize / 2
   
   ground: Mesh
@@ -60,8 +60,8 @@ export class MapController {
     let grassTileUVs = this.getTileUVs(1)
     let waterTileUVs = this.getTileUVs(2)
 
-    let noise = new Perlin(seedrandom('ground'))
-    let water = new Perlin(seedrandom('water'))
+    let noise = new Perlin(seedrandom())
+    let water = new Perlin(seedrandom())
 
     for (let row = 0; row < this.numTiles; row++) {
       for (let col = 0; col < this.numTiles; col++) {

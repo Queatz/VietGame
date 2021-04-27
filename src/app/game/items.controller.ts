@@ -2,19 +2,12 @@ import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray,
 import { OverlayController } from "./overlay.controller"
 import * as seedrandom from 'seedrandom'
 import { quiz } from "./quiz"
-import { QuizItem } from "./models"
 import { MapController } from "./map.controller"
 import { LevelController } from "./level.controller"
 
 export class ItemsController {
 
-  quizItems = quiz.trim().split('\n').map(item => {
-    const x = item.split('\t')
-    return {
-      answer: x[0].trim(),
-      question: x[1].trim()
-    } as QuizItem
-  })
+  quizItems = [ ...quiz ]
 
   itemMeshes: Array<AbstractMesh> = []
 
@@ -23,7 +16,7 @@ export class ItemsController {
   constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
     this.getSound = new Sound('get', '/assets/powerUp5.mp3', this.scene)
 
-    const rnd = seedrandom('items')
+    const rnd = seedrandom()
 
     const base = PlaneBuilder.CreatePlane('item', {
       height: .2,
@@ -58,16 +51,18 @@ export class ItemsController {
         }
       }
 
+      const item = this.quizItems[i]
+
       mesh.metadata = {
+        nameMesh: undefined as unknown as Mesh,
         talkMesh: undefined as unknown as Mesh,
         index: 0,
-        items: [ this.quizItems[i] ],
+        items: [ item ],
         ask: () => {
-          if (!mesh.isVisible) return;
+          if (!mesh.isVisible) return
 
-          if (mesh.metadata.talkMesh) {
-            mesh.metadata.talkMesh.dispose()
-          }
+          mesh.metadata.talkMesh?.dispose()
+          mesh.metadata.nameMesh?.dispose()
 
           mesh.isVisible = false
 
@@ -75,6 +70,7 @@ export class ItemsController {
 
           setTimeout(() => {
             mesh.isVisible = true
+            mesh.metadata.nameMesh = this.overlay.text(item.question, mesh, undefined, undefined, undefined, .5, .25)
           }, 30000)
 
           mesh.metadata.talkMesh = this.overlay.text(`"${mesh.metadata.items[0].answer}" có nghĩa là "${mesh.metadata.items[0].question}"`, mesh, true)

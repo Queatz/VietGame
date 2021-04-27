@@ -1,4 +1,7 @@
-export const quiz = `
+import * as seedrandom from "seedrandom"
+import { QuizItem, shuffle } from "./models"
+
+const quizRaw = `
 à	really? (tag question denotes surprise)
 ạ	final article used to show respect
 ai	who
@@ -1003,3 +1006,11 @@ yên tĩnh	quiet
 yêu	to love
 yếu	weak
 `
+export const quiz = shuffle(seedrandom(), quizRaw.trim().split('\n').map(item => {
+  const x = item.split('\t')
+  return {
+    answer: x[0].trim(),
+    question: x[1].trim()
+  } as QuizItem
+})
+).slice(0, 10)

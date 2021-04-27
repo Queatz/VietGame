@@ -2,31 +2,27 @@ import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray,
 import { OverlayController } from "./overlay.controller"
 import * as seedrandom from 'seedrandom'
 import { quiz } from "./quiz"
-import { QuizItem, shuffle } from "./models"
+import { shuffle } from "./models"
 import { MapController } from "./map.controller"
 import { LevelController } from "./level.controller"
 
 export class PeopleController {
 
-  quizItems = quiz.trim().split('\n').map(item => {
-    const x = item.split('\t')
-    return {
-      answer: x[0].trim(),
-      question: x[1].trim()
-    } as QuizItem
-  })
+  quizItems = [ ...quiz ]
 
   peopleMeshes: Array<Mesh> = []
 
   talkSound: Sound
+  completeSound: Sound
 
   constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
     this.talkSound = new Sound('get', '/assets/threeTone1.mp3', this.scene)
+    this.completeSound = new Sound('get', '/assets/highUp.mp3', this.scene)
 
     const numberOfCorrectAnswersPerQuestion = 5
     const numberOfPeople = Math.ceil(numberOfCorrectAnswersPerQuestion * Math.sqrt(this.quizItems.length / numberOfCorrectAnswersPerQuestion))
 
-    const rnd = seedrandom('people')
+    const rnd = seedrandom()
 
     for(let i = 0; i < numberOfPeople; i++) {
       const mesh = PlaneBuilder.CreatePlane('person', {
@@ -48,18 +44,19 @@ export class PeopleController {
         }
       }
 
+      const srnd = seedrandom() // i.toString()
+      const sex = Math.floor(srnd() * 2)
+      const name = names[sex][Math.floor(srnd() * names[sex].length)]
+      const nameMesh = this.overlay.text(name, mesh)
+
       const material = new StandardMaterial('player', this.scene)
       material.transparencyMode = Material.MATERIAL_ALPHATEST
-      material.diffuseTexture = new Texture('/assets/person 1.png', this.scene, false, true, Texture.NEAREST_SAMPLINGMODE)
+      material.diffuseTexture = new Texture(`/assets/person ${sex ? '1' : '2'}.png`, this.scene, false, true, Texture.NEAREST_SAMPLINGMODE)
       material.diffuseTexture.hasAlpha = true
       material.useAlphaFromDiffuseTexture = true
       material.backFaceCulling = false
       material.specularColor = Color3.Black()
       mesh.material = material
-
-      const srnd = seedrandom(i.toString())
-      const name = names[Math.floor(srnd() * names.length)]
-      const nameMesh = this.overlay.text(name, mesh)
 
       mesh.metadata = {
         nameMesh,
@@ -92,12 +89,14 @@ export class PeopleController {
 
             if (mesh.metadata.index >= mesh.metadata.items.length) {
               mesh.metadata.talkMesh = this.overlay.text('Đúng! Đó là tất cả!', mesh, true)
+              this.completeSound.play()
               material.diffuseColor = Color3.White()
             } else {
               mesh.metadata.talkMesh = this.overlay.text('Đúng!', mesh, true)
             }
           } else {
-            mesh.metadata.talkMesh = this.overlay.text(`Không chính xác! Nó là "${mesh.metadata.items[mesh.metadata.index].answer}".`, mesh, true)
+            const hint = false ? ` Nó là "${mesh.metadata.items[mesh.metadata.index].answer}".` : ''
+            mesh.metadata.talkMesh = this.overlay.text(`Không chính xác!${hint}`, mesh, true)
             mesh.metadata.index = Math.max(0, mesh.metadata.index - 2)
             mesh.metadata.nameMesh.dispose()
             mesh.metadata.nameMesh = this.overlay.text(`${name} (${mesh.metadata.index}/${mesh.metadata.items.length})`, mesh)
@@ -110,7 +109,7 @@ export class PeopleController {
   }
 }
 
-const names = [
+const names = [ [
   'An',
   'Anh',
   'Ánh',
@@ -157,7 +156,7 @@ const names = [
   'Xuân',
   'Yến',
   'Yê',
-
+], [
   'An',
   'Anh',
   'Bảo',
@@ -205,4 +204,4 @@ const names = [
   'Trung',
   'Việt',
   'Vinh',
-]
+] ]

@@ -6,7 +6,7 @@ import { Perlin } from "./noise"
 
 export class LevelController {
   
-  walls = new Perlin(seedrandom('Vietnam'))
+  walls = new Perlin(seedrandom()) // 'Hoa'
 
   wallMeshes = [] as Array<AbstractMesh>
 
@@ -89,8 +89,31 @@ export class LevelController {
   isWall(x: number, y: number): boolean {
     return this.sampleWall(x, y) > .2
   }
+
+  bestStartingPos(): Vector3 {
+    const ts = this.map.mapSize / this.map.numTiles
+
+    const search = [
+      [-1, 1],
+      [1, -1],
+      [-1, -1],
+      [1, 1],
+    ]
+
+    for (let x = 0; x < this.map.numTiles / 2; x++) {
+      for (let y = 0; y < this.map.numTiles / 2; y++) {
+        for (let s of search) {
+          if (!this.isWall(x * s[0], y * s[1])) {
+            return new Vector3(x * ts + ts / 2, 0, y * ts + ts / 2)
+          }
+        }
+      }
+    }
+
+    return Vector3.Zero()
+  }
  
   sampleWall(x: number, y: number): number {
-    return Math.abs(this.walls.sample(x / this.map.numTiles * 8, y / this.map.numTiles * 8))
+    return Math.abs(this.walls.sample(x / this.map.numTiles * (this.map.mapSize / 12), y / this.map.numTiles * (this.map.mapSize / 12)))
   }
 }
