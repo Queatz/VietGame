@@ -162,7 +162,11 @@ export class PeopleController {
         } else {
           const hint = false ? ` Nó là "${mesh.metadata.items[mesh.metadata.index].answer}".` : ''
           mesh.metadata.talkMesh = this.overlay.text(`Không chính xác!${hint}`, mesh, true)
-          mesh.metadata.index = mesh.metadata.isBoss ? 0 : Math.max(0, mesh.metadata.index - 2)
+
+          if (mesh.metadata.isBoss) {
+            mesh.metadata.index = 0 // Math.max(0, mesh.metadata.index - 2)
+          }
+
           mesh.metadata.nameMesh.dispose()
           mesh.metadata.nameMesh = this.overlay.text(`${name} (${mesh.metadata.index}/${mesh.metadata.items.length})`, mesh)
         }

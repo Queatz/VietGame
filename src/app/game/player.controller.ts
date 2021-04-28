@@ -14,6 +14,7 @@ export class PlayerController {
 
   personInteractLeaveCallback?: () => void
   personInteract?: Mesh
+  playerSayMesh?: Mesh
 
   constructor(private say: Observable<string>, private people: PeopleController, private items: ItemsController, private input: InputController, private overlay: OverlayController, private scene: Scene, private level: LevelController) {
     this.playerObject = PlaneBuilder.CreatePlane('player', {
@@ -43,7 +44,10 @@ export class PlayerController {
       })
     })
 
-    // this.overlay.text('Bạn', this.playerObject)
+    this.items.itemGetCallback = answer => {
+      this.playerSayMesh?.dispose()
+      this.playerSayMesh = this.overlay.text(answer, this.playerObject, undefined, undefined, undefined, .75, .75)
+    }
   }
 
   update() {
@@ -79,6 +83,7 @@ export class PlayerController {
 
     if (this.input.pressed('Enter')) {
       this.interactWithPerson(person => {
+        this.playerSayMesh?.dispose()
         person.metadata.ask()
       }, person => {
         person.metadata.leave?.()

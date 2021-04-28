@@ -1,6 +1,117 @@
 import * as seedrandom from "seedrandom"
 import { QuizItem, shuffle } from "./models"
 
+const popular = `
+ai
+ăn
+anh
+bà
+bán
+bạn
+bánh
+bao giờ
+bao nhiêu
+bỏ
+các
+cách
+cái
+cần
+cao
+chai
+chán
+chỉ
+chị
+cho
+chỗ
+chợ
+chơi
+có
+con
+cứ
+của
+cũng
+dễ
+đã
+đâu
+đầy
+đầy đủ
+để
+đèn
+đi
+đi chơi
+đó
+đủ
+em
+gà
+giờ
+giữa
+gọi
+hình
+ho
+hoặc
+hỏi
+in
+khi
+không
+là
+làm
+lắm
+làm ơn
+lúc
+mà
+mấy
+mình
+một
+mua
+muốn
+nào
+này
+ngồi
+ngon
+nhỏ
+nhớ
+nhóm
+nước
+ở
+ơi
+ốm
+quá
+rẻ
+rồi
+sao
+sẽ
+sớm
+sữa
+tháng
+thấy
+thêm
+theo
+thi
+thứ
+thử
+tiệm
+tiền
+tìm
+tin
+trà
+trả
+trả lời
+trang
+trước
+trước khi
+từ
+tuần
+tuy
+uống
+và
+vào
+vay
+vậy
+về
+với
+xong
+`.trim().split('\n')
+
 const quizRaw = `
 à	really? (tag question denotes surprise)
 ạ	final article used to show respect
@@ -1016,8 +1127,8 @@ export function restartQuiz() {
       answer: x[0].trim(),
       question: x[1].trim()
     } as QuizItem
-  })
-  ).slice(0, 10))
+  })//.filter(x => popular.indexOf(x.answer) !== -1)
+  ).slice(0, 7)) //).slice(0, Math.ceil(popular.length / 2)))
 }
 
 restartQuiz()

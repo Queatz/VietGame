@@ -16,6 +16,8 @@ export class ItemsController {
   base: Mesh
   rnd: any
 
+  itemGetCallback?: (item: string) => void
+
   constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
     this.getSound = new Sound('get', '/assets/powerUp5.mp3', this.scene)
 
@@ -50,7 +52,8 @@ export class ItemsController {
 
     this.itemMeshes = []
 
-    for(let i = 0; i < this.quizItems.length; i++) {
+    const c = 3
+    for(let i = 0; i < this.quizItems.length * c; i++) {
       const mesh = this.base.createInstance('item')
 
       mesh.billboardMode = Mesh.BILLBOARDMODE_Y
@@ -66,10 +69,12 @@ export class ItemsController {
         }
       }
 
-      const item = this.quizItems[i]
+      const item = this.quizItems[Math.floor( i / c)]
+
+      const nameMesh = this.overlay.text(item.answer, mesh, undefined, undefined, undefined, .5, .25)
 
       mesh.metadata = {
-        nameMesh: undefined as unknown as Mesh,
+        nameMesh,
         talkMesh: undefined as unknown as Mesh,
         index: 0,
         items: [ item ],
@@ -83,12 +88,14 @@ export class ItemsController {
 
           this.getSound.play()
 
-          setTimeout(() => {
-            mesh.isVisible = true
-            mesh.metadata.nameMesh = this.overlay.text(item.question, mesh, undefined, undefined, undefined, .5, .25)
-          }, 30000)
+          this.itemGetCallback?.(`${mesh.metadata.items[0].answer}  •  ${mesh.metadata.items[0].question}`)
 
-          mesh.metadata.talkMesh = this.overlay.text(`"${mesh.metadata.items[0].answer}" có nghĩa là "${mesh.metadata.items[0].question}"`, mesh, true)
+          // setTimeout(() => {
+          //   mesh.isVisible = true
+          //   mesh.metadata.nameMesh = this.overlay.text(item.answer, mesh, undefined, undefined, undefined, .5, .25)
+          // }, 30000)
+
+          // mesh.metadata.talkMesh = this.overlay.text(`"${mesh.metadata.items[0].answer}" có nghĩa là "${mesh.metadata.items[0].question}"`, mesh, true)
         },
         say: (text: string) => { }
       }
