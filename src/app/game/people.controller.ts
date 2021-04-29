@@ -6,6 +6,7 @@ import { QuizItem, shuffle } from "./models"
 import { MapController } from "./map.controller"
 import { LevelController } from "./level.controller"
 import { WorldController } from "./world.controller"
+import { InventoryController } from "./inventory.controller"
 
 export class PeopleController {
 
@@ -19,7 +20,14 @@ export class PeopleController {
   numberOfCorrectAnswersPerQuestion!: number
   numberOfPeople!: number
 
-  constructor(private world: WorldController, private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
+  constructor(
+    private world: WorldController,
+    private overlay: OverlayController,
+    private map: MapController,
+    private level: LevelController,
+    private inventory: InventoryController,
+    private scene: Scene
+  ) {
     this.talkSound = new Sound('get', '/assets/threeTone1.mp3', this.scene)
     this.completeSound = new Sound('get', '/assets/highUp.mp3', this.scene)
   
@@ -130,7 +138,9 @@ export class PeopleController {
           mesh.metadata.talkMesh.dispose()
         }
 
-        if (mesh.metadata.index >= mesh.metadata.items.length) {
+        if (!mesh.metadata.isBoss && !this.inventory.isEmpty()) {
+          mesh.metadata.talkMesh = this.overlay.text(this.inventory.top()!.question, mesh, true)
+        } else if (mesh.metadata.index >= mesh.metadata.items.length) {
           mesh.metadata.talkMesh = this.overlay.text('Đó là tất cả!', mesh, true)
         } else {
           mesh.metadata.talkMesh = this.overlay.text(mesh.metadata.items[mesh.metadata.index].question, mesh, true)
@@ -139,12 +149,24 @@ export class PeopleController {
       say: (text: string) => {
         mesh.metadata.talkMesh?.dispose()
 
+        if (!mesh.metadata.isBoss && !this.inventory.isEmpty()) {
+          if (this.inventory.top()!.answer === text) {
+            mesh.metadata.talkMesh = this.overlay.text('Đúng!', mesh, true)
+            this.inventory.take()
+          } else {
+            const hint = true ? ` Nó là "${this.inventory.top()!.answer}".` : ''
+            mesh.metadata.talkMesh = this.overlay.text(`Không chính xác!${hint}`, mesh, true)
+          }
+
+          return
+        }
+
         if (mesh.metadata.index >= mesh.metadata.items.length) {
           mesh.metadata.talkMesh = this.overlay.text('Đó là tất cả!', mesh, true)
           return
         }
 
-        if (mesh.metadata.items[mesh.metadata.index].answer.trim() === text) {
+        if (mesh.metadata.items[mesh.metadata.index].answer === text) {
           mesh.metadata.index++
           mesh.metadata.nameMesh.dispose()
           mesh.metadata.nameMesh = this.overlay.text(`${name} (${mesh.metadata.index}/${mesh.metadata.items.length})`, mesh)
@@ -154,7 +176,9 @@ export class PeopleController {
             this.completeSound.play()
 
             if (mesh.metadata.isBoss) {
-              this.world.restart()
+              setTimeout(() => {
+                this.world.restart()
+              }, 1000)
             }
           } else {
             mesh.metadata.talkMesh = this.overlay.text('Đúng!', mesh, true)

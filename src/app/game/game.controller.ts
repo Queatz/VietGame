@@ -9,10 +9,10 @@ export class GameController {
 
   private clearInputFlag = false
 
-  constructor(say: Observable<string>, canvas: HTMLCanvasElement) {
+  constructor(say: Observable<string>, canvas: HTMLCanvasElement, private onRestart: () => void) {
     this.engine = new Engine(canvas, false)
 
-    this.world = new WorldController(say, this.engine)
+    this.world = new WorldController(say, this.engine, this)
 
     this.engine.runRenderLoop(() => {
       this.world.render()
@@ -22,6 +22,10 @@ export class GameController {
         this.world.input.clear()
       }
     })
+  }
+
+  restart() {
+    this.onRestart()
   }
 
   clearInput() {

@@ -1128,7 +1128,7 @@ export function restartQuiz() {
       question: x[1].trim()
     } as QuizItem
   })//.filter(x => popular.indexOf(x.answer) !== -1)
-  ).slice(0, 7)) //).slice(0, Math.ceil(popular.length / 2)))
+  ).slice(0, 15)) //).slice(0, Math.ceil(popular.length / 2)))
 }
 
 restartQuiz()

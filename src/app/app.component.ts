@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs'
 import { GameController } from './game/game.controller'
+import { quiz } from './game/quiz'
 
 @Component({
   selector: 'app-root',
@@ -19,8 +20,13 @@ export class AppComponent implements OnInit, AfterViewInit {
   say = new Subject<string>()
   game!: GameController
 
+  quiz = quiz
+  showIntro = true
+
   ngOnInit(): void {
-    this.game = new GameController(this.say, this.renderCanvas.nativeElement)
+    this.game = new GameController(this.say, this.renderCanvas.nativeElement, () => {
+      this.showIntro = true
+    })
 
     window.addEventListener('resize', () => {
       this.game.resize()

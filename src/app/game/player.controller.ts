@@ -5,6 +5,7 @@ import { OverlayController } from "./overlay.controller"
 import { Observable } from "rxjs"
 import { ItemsController } from "./items.controller"
 import { LevelController } from "./level.controller"
+import { InventoryController } from "./inventory.controller"
 
 
 export class PlayerController {
@@ -16,7 +17,16 @@ export class PlayerController {
   personInteract?: Mesh
   playerSayMesh?: Mesh
 
-  constructor(private say: Observable<string>, private people: PeopleController, private items: ItemsController, private input: InputController, private overlay: OverlayController, private scene: Scene, private level: LevelController) {
+  constructor(
+    private say: Observable<string>,
+    private people: PeopleController,
+    private items: ItemsController,
+    private input: InputController,
+    private overlay: OverlayController,
+    private scene: Scene,
+    private level: LevelController,
+    private inventory: InventoryController
+  ) {
     this.playerObject = PlaneBuilder.CreatePlane('player', {
       height: 1,
       width: .5,
@@ -25,7 +35,7 @@ export class PlayerController {
     this.playerObject.checkCollisions = true
 
     this.restart()
-    
+
     this.playerObject.ellipsoid.scaleInPlace(.5)
 
     this.playerMaterial = new StandardMaterial('player', this.scene)
@@ -44,9 +54,10 @@ export class PlayerController {
       })
     })
 
-    this.items.itemGetCallback = answer => {
+    this.items.itemGetCallback = item => {
+      this.inventory.add(item)
       this.playerSayMesh?.dispose()
-      this.playerSayMesh = this.overlay.text(answer, this.playerObject, undefined, undefined, undefined, .75, .75)
+      this.playerSayMesh = this.overlay.text(`${item.answer}  •  ${item.question}`, this.playerObject, undefined, undefined, undefined, .75, .75)
     }
   }
 

@@ -16,7 +16,7 @@ export class ItemsController {
   base: Mesh
   rnd: any
 
-  itemGetCallback?: (item: string) => void
+  itemGetCallback?: (item: QuizItem) => void
 
   constructor(private overlay: OverlayController, private map: MapController, private level: LevelController, private scene: Scene) {
     this.getSound = new Sound('get', '/assets/powerUp5.mp3', this.scene)
@@ -69,7 +69,7 @@ export class ItemsController {
         }
       }
 
-      const item = this.quizItems[Math.floor( i / c)]
+      const item = this.quizItems[Math.floor(i / c)]
 
       const nameMesh = this.overlay.text(item.answer, mesh, undefined, undefined, undefined, .5, .25)
 
@@ -88,12 +88,12 @@ export class ItemsController {
 
           this.getSound.play()
 
-          this.itemGetCallback?.(`${mesh.metadata.items[0].answer}  •  ${mesh.metadata.items[0].question}`)
+          this.itemGetCallback?.(mesh.metadata.items[0])
 
-          // setTimeout(() => {
-          //   mesh.isVisible = true
-          //   mesh.metadata.nameMesh = this.overlay.text(item.answer, mesh, undefined, undefined, undefined, .5, .25)
-          // }, 30000)
+          setTimeout(() => {
+            mesh.isVisible = true
+            mesh.metadata.nameMesh = this.overlay.text(item.answer, mesh, undefined, undefined, undefined, .5, .25)
+          }, 30000)
 
           // mesh.metadata.talkMesh = this.overlay.text(`"${mesh.metadata.items[0].answer}" có nghĩa là "${mesh.metadata.items[0].question}"`, mesh, true)
         },

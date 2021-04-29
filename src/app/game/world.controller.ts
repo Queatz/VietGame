@@ -8,6 +8,8 @@ import { Observable } from "rxjs"
 import { LevelController } from "./level.controller"
 import { ItemsController } from "./items.controller"
 import { restartQuiz } from "./quiz"
+import { InventoryController } from "./inventory.controller"
+import { GameController } from "./game.controller"
 
 export class WorldController {
 
@@ -29,8 +31,9 @@ export class WorldController {
   shadowGenerator: CascadedShadowGenerator
   lutPostProcess: ColorCorrectionPostProcess
   music: Sound
+  inventory: InventoryController
 
-  constructor(private say: Observable<string>, private engine: Engine) {
+  constructor(private say: Observable<string>, private engine: Engine, private game: GameController) {
     this.scene = new Scene(this.engine)
     this.input = new InputController(this.scene)
 
@@ -153,10 +156,11 @@ export class WorldController {
     this.map = new MapController(this.scene)
     this.level = new LevelController(this.scene, this.map)
 
-    this.people = new PeopleController(this, this.overlay, this.map, this.level, this.scene)
+    this.inventory = new InventoryController()
+    this.people = new PeopleController(this, this.overlay, this.map, this.level, this.inventory, this.scene)
     this.items = new ItemsController(this.overlay, this.map, this.level, this.scene)
 
-    this.player = new PlayerController(this.say, this.people, this.items, this.input, this.overlay, this.scene, this.level)
+    this.player = new PlayerController(this.say, this.people, this.items, this.input, this.overlay, this.scene, this.level, this.inventory)
 
     this.camera.lockedTarget = this.player.playerObject
 
@@ -190,6 +194,7 @@ export class WorldController {
     this.people.restart()
     this.map.restart()
     this.player.restart()
+    this.game.restart()
   }
 
   update(): void {
@@ -201,6 +206,10 @@ export class WorldController {
     this.overlaySceneCamera.fov = this.camera.fov
     this.overlaySceneCamera.minZ = this.camera.minZ
     this.overlaySceneCamera.maxZ = this.camera.maxZ
+
+    if (this.input.single('r')) {
+      this.restart()
+    }
   }
 
   render(): void {
