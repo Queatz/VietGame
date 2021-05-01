@@ -71,10 +71,10 @@ export class ItemsController {
 
       const item = this.quizItems[Math.floor(i / c)]
 
-      const nameMesh = this.overlay.text(item.answer, mesh, undefined, undefined, undefined, .5, .25)
+      // const nameMesh = this.overlay.text(item.answer, mesh, undefined, undefined, undefined, .5, .25)
 
       mesh.metadata = {
-        nameMesh,
+        // nameMesh,
         talkMesh: undefined as unknown as Mesh,
         index: 0,
         items: [ item ],

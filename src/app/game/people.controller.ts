@@ -119,6 +119,7 @@ export class PeopleController {
 
   genMeta(srnd: any, mesh: Mesh, name: string, nameMesh: Mesh, isBoss = false) {
     return {
+      canAnswer: Math.random() < .45,
       isBoss,
       nameMesh,
       talkMesh: undefined as unknown as Mesh,
@@ -138,8 +139,8 @@ export class PeopleController {
           mesh.metadata.talkMesh.dispose()
         }
 
-        if (!mesh.metadata.isBoss && !this.inventory.isEmpty()) {
-          mesh.metadata.talkMesh = this.overlay.text(this.inventory.top()!.question, mesh, true)
+        if (mesh.metadata.canAnswer && !mesh.metadata.isBoss && !this.inventory.isEmpty()) {
+          mesh.metadata.talkMesh = this.overlay.text(`"${this.inventory.top()!.answer}" ý nghĩa là "${this.inventory.top()!.question}"`, mesh, true)
         } else if (mesh.metadata.index >= mesh.metadata.items.length) {
           mesh.metadata.talkMesh = this.overlay.text('Đó là tất cả!', mesh, true)
         } else {
@@ -149,7 +150,7 @@ export class PeopleController {
       say: (text: string) => {
         mesh.metadata.talkMesh?.dispose()
 
-        if (!mesh.metadata.isBoss && !this.inventory.isEmpty()) {
+        if (mesh.metadata.canAnswer && !mesh.metadata.isBoss && !this.inventory.isEmpty()) {
           if (this.inventory.top()!.answer === text) {
             mesh.metadata.talkMesh = this.overlay.text('Đúng!', mesh, true)
             this.inventory.take()

@@ -1,4 +1,4 @@
-import { AbstractMesh, BoxBuilder, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, GlowLayer, HemisphericLight, InstancedMesh, Ray, Scene, Sound, SphereBuilder, SSAO2RenderingPipeline, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, BoxBuilder, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, GlowLayer, HemisphericLight, InstancedMesh, Nullable, PrePassRenderer, Ray, Scene, Sound, SphereBuilder, SSAO2RenderingPipeline, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { InputController } from "./input.controller"
 import { MapController } from "./map.controller"
 import { PeopleController } from "./people.controller"
@@ -10,6 +10,7 @@ import { ItemsController } from "./items.controller"
 import { restartQuiz } from "./quiz"
 import { InventoryController } from "./inventory.controller"
 import { GameController } from "./game.controller"
+import { RainController } from "./rain.controller"
 
 export class WorldController {
 
@@ -29,9 +30,10 @@ export class WorldController {
   overlayScene: Scene
   overlaySceneCamera: FreeCamera
   shadowGenerator: CascadedShadowGenerator
-  lutPostProcess: ColorCorrectionPostProcess
   music: Sound
   inventory: InventoryController
+  skyboxMaterial: StandardMaterial
+  rain: RainController
 
   constructor(private say: Observable<string>, private engine: Engine, private game: GameController) {
     this.scene = new Scene(this.engine)
@@ -98,8 +100,8 @@ export class WorldController {
     sun.applyFog = false
 
     // const gl = new GlowLayer('glow', this.scene)
-    // gl.blurKernelSize = 96
-    // gl.intensity = 1
+    // gl.blurKernelSize = 24
+    // gl.intensity = .25
 
     this.shadowGenerator = new CascadedShadowGenerator(1024, this.light, true)
     this.shadowGenerator.lambda = .667
@@ -125,28 +127,27 @@ export class WorldController {
     })
 
     this.pipeline = new DefaultRenderingPipeline('defaultPipeline', true, this.scene, [ this.camera ])
-    this.pipeline.samples = .25
+    this.pipeline.samples = 4
     this.pipeline.fxaaEnabled = true
     this.pipeline.imageProcessingEnabled = true
     this.pipeline.imageProcessing.exposure = 1.5
     this.pipeline.bloomEnabled = true
-    this.pipeline.bloomThreshold = .75
-    this.pipeline.bloomWeight = 1
-    this.pipeline.bloomKernel = 96
+    this.pipeline.bloomThreshold = .5
+    this.pipeline.bloomWeight = .5
+    this.pipeline.bloomKernel = 96 / 2
     this.pipeline.bloomScale = .5
 
     const ssao = new SSAO2RenderingPipeline('ssao', this.scene, {
       ssaoRatio: .5,
       blurRatio: 1
-    })
+    }, [ this.camera ], true)
     ssao.radius = 16
     ssao.totalStrength = 1
     ssao.expensiveBlur = true
     ssao.samples = 24
     ssao.maxZ = this.camera.maxZ / 2
-    this.scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline('ssao', this.camera)
 
-    this.lutPostProcess = new ColorCorrectionPostProcess(
+    new ColorCorrectionPostProcess(
       'color_correction',
       'assets/Fuji XTrans III - Classic Chrome.png',
       1,
@@ -164,18 +165,25 @@ export class WorldController {
 
     this.camera.lockedTarget = this.player.playerObject
 
-    // const skybox = BoxBuilder.CreateBox('skyBox', { size: (this.map.mapSize * 2) }, this.scene)
-    // const skyboxMaterial = new StandardMaterial('skyBox', this.scene)
-    // skyboxMaterial.backFaceCulling = false
+    const skybox = BoxBuilder.CreateBox('skyBox', { size: (this.map.mapSize * 2) }, this.scene)
+    this.skyboxMaterial = new StandardMaterial('skyBox', this.scene)
+    this.skyboxMaterial.backFaceCulling = false
     // skyboxMaterial.reflectionTexture = new CubeTexture('https://playground.babylonjs.com/textures/skybox', this.scene)
     // skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE
-    // skyboxMaterial.diffuseColor = new Color3(0, 0, 0)
-    // skyboxMaterial.specularColor = new Color3(0, 0, 0)
-    // skybox.material = skyboxMaterial
-    // skybox.applyFog = false
+    this.skyboxMaterial.emissiveColor = new Color3(1, .1, .1).toLinearSpace().scale(4)
+    this.skyboxMaterial.diffuseColor = new Color3(0, 0, 0)
+    this.skyboxMaterial.specularColor = new Color3(0, 0, 0)
+    this.skyboxMaterial.disableDepthWrite = true
+    skybox.alphaIndex = -1
+    skybox.material = this.skyboxMaterial
+    skybox.applyFog = false
+
+    this.makeSky()
+
+    this.rain = new RainController(this.scene)
 
     this.scene.onBeforeRenderObservable.add(() => {
-      this.update();
+       this.update()
 
       const d = Vector3.Distance(this.camera.position, this.player.playerObject.position)
       const ray = new Ray(this.player.playerObject.position, this.camera.position.subtract(this.player.playerObject.position).normalize(), d)
@@ -189,17 +197,29 @@ export class WorldController {
 
   restart(): void {
     restartQuiz()
+    this.makeSky()
     this.level.restart()
     this.items.restart()
     this.people.restart()
     this.map.restart()
     this.player.restart()
     this.game.restart()
+    this.rain.restart()
+  }
+
+  makeSky() {
+    let sky = new Color3(1, .75, .5).toHSV()
+    let v = Math.random() * .75 + .25
+    Color3.HSVtoRGBToRef(Math.random() * 360, sky.g, v, sky)
+    this.skyboxMaterial.emissiveColor = sky.scale(2)
+    this.scene.fogColor = sky
+    this.light.intensity = v
   }
 
   update(): void {
     this.camera.update()
     this.player.update()
+    this.rain.update()
 
     this.overlaySceneCamera.position = this.camera.position.clone()
     this.overlaySceneCamera.rotation = this.camera.rotation.clone()

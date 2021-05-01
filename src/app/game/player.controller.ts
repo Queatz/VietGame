@@ -57,7 +57,7 @@ export class PlayerController {
     this.items.itemGetCallback = item => {
       this.inventory.add(item)
       this.playerSayMesh?.dispose()
-      this.playerSayMesh = this.overlay.text(`${item.answer}  •  ${item.question}`, this.playerObject, undefined, undefined, undefined, .75, .75)
+      this.playerSayMesh = this.overlay.text(`${item.answer}`, this.playerObject, undefined, undefined, undefined, .75, .75)
     }
   }
 

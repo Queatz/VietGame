@@ -42,11 +42,18 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (this.showSay) {
       this.showSay = false
       this.renderCanvas.nativeElement.focus()
+    } else {
+      //this.showIntro = !this.showIntro
     }
   }
 
   @HostListener('window:keydown.enter')
   talk(): void {
+    if (this.showIntro) {
+      this.showIntro = false
+      return
+    }
+
     this.showSay = !this.showSay
     
     if (this.showSay) {
@@ -62,5 +69,10 @@ export class AppComponent implements OnInit, AfterViewInit {
 
       this.renderCanvas.nativeElement.focus()
     }
+  }
+
+  go(): void {
+    this.showIntro = false
+    this.renderCanvas.nativeElement.focus()
   }
 }

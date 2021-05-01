@@ -6,7 +6,7 @@ import { Perlin } from "./noise"
 
 export class LevelController {
   
-  walls = new Perlin(seedrandom()) // 'Hoa'
+  walls!: Perlin
 
   wallMaterial: StandardMaterial
 
@@ -24,6 +24,7 @@ export class LevelController {
   }
   
   restart() {
+    this.walls = new Perlin(seedrandom())
     this.wallMeshes.forEach(mesh => {
       mesh.dispose()
     })
