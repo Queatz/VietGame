@@ -13,7 +13,7 @@ export class OverlayController {
     ];
   }
 
-  text(text: string, mesh: AbstractMesh, vanish: boolean = false, position?: number, callback?: () => void, fontSize = 1, offset: number = 1): Mesh {
+  text(text: string, mesh?: AbstractMesh, vanish: boolean = false, position?: number, callback?: () => void, fontSize = 1, offset: number = 1): Mesh {
     const font_size = 48 * fontSize
     const font = 'normal ' + font_size + 'px Nunito, Arial, sans-serif'
     
@@ -65,34 +65,43 @@ export class OverlayController {
 
     plane.billboardMode = Mesh.BILLBOARDMODE_ALL
 
-    const node = new Mesh('pivot', mesh.getScene())
-    node.parent = mesh
+    const node = new Mesh('pivot', this.scene)
+    
+    if (mesh) {
+      node.parent = mesh
 
-    if (position) {
-      node.position.addInPlace(new Vector3(.75, 0, 0))
-      plane.position.addInPlace(new Vector3(0, position * planeHeight * 1.25, 0))
+      if (position) {
+        node.position.addInPlace(new Vector3(.75, 0, 0))
+        plane.position.addInPlace(new Vector3(0, position * planeHeight * 1.25, 0))
 
-      plane.onBeforeBindObservable.add(() => {
-        const camera = this.scene.activeCamera! as FollowCamera
-        const final = Math.abs(Scalar.DeltaAngle(
-          Angle.FromRadians(camera.rotation.y).degrees(),
-          Angle.FromRadians(mesh.absoluteRotationQuaternion.toEulerAngles().y).degrees()
-        )) / 180
+        plane.onBeforeBindObservable.add(() => {
+          const camera = this.scene.activeCamera! as FollowCamera
+          const final = Math.abs(Scalar.DeltaAngle(
+            Angle.FromRadians(camera.rotation.y).degrees(),
+            Angle.FromRadians(mesh.absoluteRotationQuaternion.toEulerAngles().y).degrees()
+          )) / 180
 
-        plane.visibility = Math.min(1, Math.max(0.01, 1 - Math.pow(1 - (final < .75 ? 0 : ((final - .75)) / .25), 4)))
-      })
-    } else if (vanish) {
-      setTimeout(() => {
-        node.dispose(false, true)
-      }, 4000)
-      node.position.addInPlace(new Vector3(0, .75, 0))
+          plane.visibility = Math.min(1, Math.max(0.01, 1 - Math.pow(1 - (final < .75 ? 0 : ((final - .75)) / .25), 4)))
+        })
+      } else if (vanish) {
+        node.position.addInPlace(new Vector3(0, .75, 0))
+      } else {
+        node.position.addInPlace(new Vector3(0, offset, 0))
+      }
     } else {
-      node.position.addInPlace(new Vector3(0, offset, 0))
+      node.parent = this.scene.activeCamera
+      node.position.addInPlace(new Vector3(0, -3.8, 12))
     }
 
     plane.parent = node
 
     plane.metadata = { callback }
+
+    if (vanish) {
+      setTimeout(() => {
+        node.dispose(false, true)
+      }, 4000)
+    }
 
     return plane
   }

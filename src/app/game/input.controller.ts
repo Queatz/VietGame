@@ -10,6 +10,7 @@ export class InputController {
     scene.actionManager = new ActionManager(scene)
     scene.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, evt => {
         this.inputMap.set(evt.sourceEvent.key, evt.sourceEvent.type === 'keydown')
+        console.log(evt.sourceEvent.key)
     }))
     scene.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, evt => {
       this.inputMap.set(evt.sourceEvent.key, evt.sourceEvent.type === 'keydown')

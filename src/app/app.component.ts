@@ -76,6 +76,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
+  toggleSettings() {
+    this.showSettings = !this.showSettings
+    
+    if (!this.showSettings) {
+      this.game.world.restart()
+    }
+  }
+
   go(): void {
     this.showIntro = false
     this.renderCanvas.nativeElement.focus()

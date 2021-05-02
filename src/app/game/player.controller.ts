@@ -70,15 +70,23 @@ export class PlayerController {
     }
     
     if (this.input.pressed('ArrowDown')) {
-      this.playerObject.moveWithCollisions(this.playerObject.forward.scale(speed).negate())
+      this.playerObject.moveWithCollisions(this.playerObject.forward.scale(speed / 2).negate())
     }
     
     if (this.input.pressed('ArrowLeft')) {
-      this.playerObject.rotate(Vector3.Up(), -speed / 2)
+      if (this.input.pressed('Shift')) {
+        this.playerObject.moveWithCollisions(this.playerObject.right.scale(-speed / 2))
+      } else {
+        this.playerObject.rotate(Vector3.Up(), -speed / 2)
+      }
     }
     
     if (this.input.pressed('ArrowRight')) {
-      this.playerObject.rotate(Vector3.Up(), speed / 2)
+      if (this.input.pressed('Shift')) {
+        this.playerObject.moveWithCollisions(this.playerObject.right.scale(speed / 2))
+      } else {
+        this.playerObject.rotate(Vector3.Up(), speed / 2)
+      }
     }
     
     const ray = new Ray(this.playerObject.position.add(new Vector3(0, -.45, 0)), this.playerObject.forward, .5)

@@ -198,6 +198,8 @@ export class WorldController {
         this.camera.position.copyFrom(Vector3.Lerp(this.camera.position, hits[0]!.pickedPoint!, .125))
       }
     })
+
+    this.overlay.text('🎵 "Next to You" by Joth', undefined, true)
   }
 
   restart(): void {

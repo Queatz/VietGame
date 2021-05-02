@@ -13,7 +13,7 @@
   Arrow keys to move, space to climb walls, R to restart
   <br />
   <br />
-  <div class="show-link" (click)="showSettings = !showSettings">Change difficulty</div>
+  <div class="show-link" (click)="toggleSettings()">Change difficulty</div>
   <div *ngIf="showSettings">
     <input type="number" [(ngModel)]="gameSettings.count" />
   </div>
