@@ -126,7 +126,7 @@ giới hạn	limit
 sát nhập	merge
 dần dần	slowly
 phần	part
-tới	arrive
+tới	coming
 `
 
 const quizRawAll = `

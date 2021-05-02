@@ -139,6 +139,10 @@ export class PeopleController {
           mesh.metadata.talkMesh.dispose()
         }
 
+        if (mesh.metadata.isBoss) {
+          this.world.items.hide()
+        }
+
         if (mesh.metadata.canAnswer && !mesh.metadata.isBoss && !this.inventory.isEmpty()) {
           mesh.metadata.talkMesh = this.overlay.text(`"${this.inventory.top()!.answer}" ý nghĩa là "${this.inventory.top()!.question}"`, mesh, true)
         } else if (mesh.metadata.index >= mesh.metadata.items.length) {

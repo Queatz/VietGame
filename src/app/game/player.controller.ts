@@ -63,7 +63,7 @@ export class PlayerController {
 
   update() {
     const dt = this.scene.getEngine().getDeltaTime()
-    const speed = 0.005  * dt
+    const speed = 0.00333  * dt
 
     if (this.input.pressed('ArrowUp')) {
       this.playerObject.moveWithCollisions(this.playerObject.forward.scale(speed))

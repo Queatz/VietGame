@@ -11,6 +11,7 @@ import { restartQuiz } from "./quiz"
 import { InventoryController } from "./inventory.controller"
 import { GameController } from "./game.controller"
 import { RainController } from "./rain.controller"
+import { TreeController } from "./tree.controller"
 
 export class WorldController {
 
@@ -34,6 +35,8 @@ export class WorldController {
   inventory: InventoryController
   skyboxMaterial: StandardMaterial
   rain: RainController
+  tree: TreeController
+  sun: any
 
   constructor(private say: Observable<string>, private engine: Engine, private game: GameController) {
     this.scene = new Scene(this.engine)
@@ -87,17 +90,16 @@ export class WorldController {
     this.ambientLight = new HemisphericLight('ambientLight', this.light.direction.clone(), this.scene)
     this.ambientLight.intensity = .52
 
-    const sun = SphereBuilder.CreateSphere('sun', {
+    this.sun = SphereBuilder.CreateSphere('sun', {
       diameter: 2.5
     })
-    sun.position.copyFrom(this.light.direction.negate().scale(50))
 
     const sunMaterial = new StandardMaterial('sun', this.scene)
     sunMaterial.emissiveColor = Color3.White().toLinearSpace().scale(100)
     sunMaterial.specularColor = Color3.Black()
     sunMaterial.diffuseColor = Color3.Black()
-    sun.material = sunMaterial
-    sun.applyFog = false
+    this.sun.material = sunMaterial
+    this.sun.applyFog = false
 
     // const gl = new GlowLayer('glow', this.scene)
     // gl.blurKernelSize = 24
@@ -137,15 +139,15 @@ export class WorldController {
     this.pipeline.bloomKernel = 96 / 2
     this.pipeline.bloomScale = .5
 
-    const ssao = new SSAO2RenderingPipeline('ssao', this.scene, {
-      ssaoRatio: .5,
-      blurRatio: 1
-    }, [ this.camera ], true)
-    ssao.radius = 16
-    ssao.totalStrength = 1
-    ssao.expensiveBlur = true
-    ssao.samples = 24
-    ssao.maxZ = this.camera.maxZ / 2
+    // const ssao = new SSAO2RenderingPipeline('ssao', this.scene, {
+    //   ssaoRatio: .5,
+    //   blurRatio: 1
+    // }, [ this.camera ], true)
+    // ssao.radius = 16
+    // ssao.totalStrength = 1
+    // ssao.expensiveBlur = true
+    // ssao.samples = 24
+    // ssao.maxZ = this.camera.maxZ / 2
 
     new ColorCorrectionPostProcess(
       'color_correction',
@@ -156,6 +158,7 @@ export class WorldController {
 
     this.map = new MapController(this.scene)
     this.level = new LevelController(this.scene, this.map)
+    this.tree = new TreeController(this.scene, this.map, this.level)
 
     this.inventory = new InventoryController()
     this.people = new PeopleController(this, this.overlay, this.map, this.level, this.inventory, this.scene)
@@ -198,20 +201,25 @@ export class WorldController {
   restart(): void {
     restartQuiz()
     this.makeSky()
+    this.map.restart()
     this.level.restart()
+    this.rain.restart()
     this.items.restart()
     this.people.restart()
-    this.map.restart()
+    this.tree.restart()
     this.player.restart()
     this.game.restart()
-    this.rain.restart()
   }
 
   makeSky() {
+
+    this.light.direction.copyFrom(new Vector3(-Math.random() * 1, -Math.random() * 2, -Math.random() * 1))
+    this.sun.position.copyFrom(this.light.direction.negate().scale(50))
+
     let sky = new Color3(1, .75, .5).toHSV()
-    let v = Math.random() * .75 + .25
+    let v = Math.random() * .65 + .125
     Color3.HSVtoRGBToRef(Math.random() * 360, sky.g, v, sky)
-    this.skyboxMaterial.emissiveColor = sky.scale(2)
+    this.skyboxMaterial.emissiveColor = sky.scale(1.5)
     this.scene.fogColor = sky
     this.light.intensity = v
   }

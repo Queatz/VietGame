@@ -1,10 +1,20 @@
-import { FollowCamera, MeshBuilder, Scene, SolidParticleSystem, StandardMaterial, Texture, Material } from '@babylonjs/core'
+import { FollowCamera, MeshBuilder, Scene, SolidParticleSystem, StandardMaterial, Texture, Material, Sound } from '@babylonjs/core'
 
 export class RainController {
 
   SPS?: SolidParticleSystem
 
+  rain: Sound
+  wind: Sound
+
   constructor(private scene: Scene, private dense = false) {
+    this.rain = new Sound('weather', 'assets/rain_2.wav', this.scene, undefined, {
+      loop: true
+    })
+    this.wind = new Sound('weather', 'assets/wind_4.wav', this.scene, undefined, {
+      loop: true
+    })
+    
     this.restart()
   }
 
@@ -13,6 +23,17 @@ export class RainController {
   }
 
   restart() {
+    this.rain.stop()
+    this.wind.stop()
+
+    if (this.wind.isReady()) {
+      this.wind.play()
+    } else {
+      this.wind.autoplay = true
+    }
+
+    this.wind.setVolume(Math.random() * .1)
+
     if (this.SPS) {
       this.SPS.dispose()
       this.SPS = undefined
@@ -23,6 +44,17 @@ export class RainController {
     }
 
     this.dense = Math.random() < .333
+
+    if (this.rain.isReady()) {
+      this.rain.play()
+    } else {
+      this.rain.autoplay = true
+    }
+    
+    const volume = this.dense ? .8 : .2
+
+    this.rain.setVolume(volume)
+    this.wind.setVolume(volume)
 
     const rainMesh = MeshBuilder.CreatePlane('rain particle', {
       width: (this.dense ? 1 : 2 / 64),
@@ -36,6 +68,7 @@ export class RainController {
     rainMat.emissiveColor = this.scene.fogColor
     rainMat.alpha = .25 * (this.dense ? .5 : 1)
     rainMat.backFaceCulling = false
+    rainMat.disableDepthWrite = true
 
     rainMesh.material = rainMat
 
