@@ -119,7 +119,7 @@ export class PeopleController {
 
   genMeta(srnd: any, mesh: Mesh, name: string, nameMesh: Mesh, isBoss = false) {
     return {
-      canAnswer: Math.random() < .45,
+      canAnswer: Math.random() < .5,
       isBoss,
       nameMesh,
       talkMesh: undefined as unknown as Mesh,

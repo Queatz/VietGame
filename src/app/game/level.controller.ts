@@ -15,8 +15,8 @@ export class LevelController {
   constructor(private scene: Scene, private map: MapController) {
     this.wallMaterial = new StandardMaterial('wall', this.scene)
     const texture = new Texture('/assets/wall.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
-    texture.vScale = 6
-    texture.uScale = 6 * (this.map.mapSize * 2 / 6)
+    texture.vScale = 2
+    texture.uScale = 2 * (this.map.mapSize / 2 / 2)
     this.wallMaterial.diffuseTexture = texture
     this.wallMaterial.specularPower = 512
 
@@ -65,7 +65,7 @@ export class LevelController {
 
     const treeMaterial = new StandardMaterial('wall', this.scene)
     const treeTexture = new Texture('/assets/wall.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
-    treeTexture.vScale = 3
+    treeTexture.vScale = 1
     treeTexture.uScale = 1
     treeMaterial.diffuseTexture = treeTexture
     treeMaterial.specularPower = 512

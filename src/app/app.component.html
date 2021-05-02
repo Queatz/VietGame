@@ -1,5 +1,5 @@
 <canvas #renderCanvas touch-action="none"></canvas>
-<input #sayInput placeholder="Talk..." [hidden]="!showSay" />
+<input #sayInput class="say" placeholder="Talk..." [hidden]="!showSay" />
 <div class="intro-modal" *ngIf="showIntro">
   <h2>You're about to learn the following</h2>
   <div *ngFor="let item of quiz">
@@ -8,10 +8,14 @@
   </div>
   <br />
   <b>Instructions</b>
+  Collect words you don't know and talk with the friends<br />
   Answer all purple shirt lady's questions to win<br />
-  Talk with the friends for practice<br />
   Arrow keys to move, space to climb walls, R to restart
   <br />
   <br />
+  <div class="show-link" (click)="showSettings = !showSettings">Change difficulty</div>
+  <div *ngIf="showSettings">
+    <input type="number" [(ngModel)]="gameSettings.count" />
+  </div>
   <button (click)="go()">Let's go!</button>
 </div>

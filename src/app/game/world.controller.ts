@@ -108,7 +108,7 @@ export class WorldController {
     this.shadowGenerator = new CascadedShadowGenerator(1024, this.light, true)
     this.shadowGenerator.lambda = .667
     this.shadowGenerator.transparencyShadow = true
-    this.shadowGenerator.enableSoftTransparentShadow = true
+    // this.shadowGenerator.enableSoftTransparentShadow = true // disabled for tree shadow hack
     this.shadowGenerator.bias = .0035
     this.shadowGenerator.normalBias = .02
     this.shadowGenerator.setDarkness(0.5)
@@ -158,7 +158,7 @@ export class WorldController {
 
     this.map = new MapController(this.scene)
     this.level = new LevelController(this.scene, this.map)
-    this.tree = new TreeController(this.scene, this.map, this.level)
+    this.tree = new TreeController(this.scene, this.map, this.level, this.light)
 
     this.inventory = new InventoryController()
     this.people = new PeopleController(this, this.overlay, this.map, this.level, this.inventory, this.scene)
@@ -183,7 +183,9 @@ export class WorldController {
 
     this.makeSky()
 
-    this.rain = new RainController(this.scene)
+    this.rain = new RainController(this.scene, false, dense => {
+      this.scene.fogMode = dense ? Scene.FOGMODE_EXP2 : Scene.FOGMODE_LINEAR
+    })
 
     this.scene.onBeforeRenderObservable.add(() => {
        this.update()
@@ -209,19 +211,22 @@ export class WorldController {
     this.tree.restart()
     this.player.restart()
     this.game.restart()
+    this.inventory.clear()
   }
 
   makeSky() {
-
     this.light.direction.copyFrom(new Vector3(-Math.random() * 1, -Math.random() * 2, -Math.random() * 1))
     this.sun.position.copyFrom(this.light.direction.negate().scale(50))
+
+    this.ambientLight.direction.copyFrom(this.light.direction)
 
     let sky = new Color3(1, .75, .5).toHSV()
     let v = Math.random() * .65 + .125
     Color3.HSVtoRGBToRef(Math.random() * 360, sky.g, v, sky)
     this.skyboxMaterial.emissiveColor = sky.scale(1.5)
-    this.scene.fogColor = sky
     this.light.intensity = v
+    this.scene.fogColor = sky
+    this.scene.fogEnd = 20 + Math.random() * 80
   }
 
   update(): void {

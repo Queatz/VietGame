@@ -1,4 +1,4 @@
-import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, Color3, DeepImmutable, DirectionalLight, Light, Material, Mesh, PlaneBuilder, Quaternion, Ray, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import * as seedrandom from 'seedrandom'
 import { MapController } from "./map.controller"
 import { LevelController } from "./level.controller"
@@ -11,8 +11,9 @@ export class TreeController {
   rnd: any
 
   treeHeight = 8
+  shadowBase: Mesh
 
-  constructor(private scene: Scene, private map: MapController, private level: LevelController) {
+  constructor(private scene: Scene, private map: MapController, private level: LevelController, private light: DirectionalLight) {
     this.rnd = seedrandom()
 
     this.base = PlaneBuilder.CreatePlane('tree', {
@@ -20,7 +21,11 @@ export class TreeController {
       width: this.treeHeight / 2,
     }, this.scene)
 
+    this.shadowBase = this.base.clone('shadow')
+    this.shadowBase.visibility = 0
+
     this.base.isVisible = false
+    this.shadowBase.isVisible = false
 
     const material = new StandardMaterial('tree', this.scene)
     material.transparencyMode = Material.MATERIAL_ALPHATEST
@@ -31,6 +36,7 @@ export class TreeController {
     material.specularColor = Color3.Black()
     material.linkEmissiveWithDiffuse = true
     this.base.material = material
+    this.shadowBase.material = material
 
     this.restart()
   }
@@ -43,12 +49,13 @@ export class TreeController {
     this.meshes = []
 
     for(let i = 0; i < this.map.mapSize / 2; i++) {
-      const mesh = this.base.createInstance('tree')
+      const mesh = this.base.createInstance('tree mesh')
+      const shadow = this.shadowBase.createInstance('tree')
 
       mesh.billboardMode = Mesh.BILLBOARDMODE_Y
 
       for (let tries = 0; tries < 20; tries++) {
-        mesh.position.copyFrom(new Vector3((this.rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), this.treeHeight / 2 - .1, (this.rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
+        mesh.position.copyFrom(new Vector3((this.rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), this.treeHeight / 2, (this.rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
       
         const ray = new Ray(mesh.position.add(new Vector3(0, -2, 0)), Vector3.Up(), 10)
         const hits = ray.intersectsMeshes(this.level.wallMeshes as Array<DeepImmutable<AbstractMesh>>, true)
@@ -58,7 +65,13 @@ export class TreeController {
         }
       }
 
+      shadow.position.copyFrom(mesh.position.add(new Vector3(0, .25, 0)))
+
+      const q = Quaternion.FromLookDirectionLH(this.light.direction, Vector3.Up()).toEulerAngles().y
+      shadow.addRotation(0, q, 0)
+
       this.meshes.push(mesh)
+      this.meshes.push(shadow)
     }
   }
 }

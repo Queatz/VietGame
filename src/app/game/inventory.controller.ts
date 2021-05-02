@@ -18,4 +18,8 @@ export class InventoryController {
   isEmpty(): boolean {
     return this.inventory.length === 0
   }
+
+  clear() {
+    this.inventory.length = 0
+  }
 }

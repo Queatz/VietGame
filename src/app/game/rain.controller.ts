@@ -7,7 +7,7 @@ export class RainController {
   rain: Sound
   wind: Sound
 
-  constructor(private scene: Scene, private dense = false) {
+  constructor(private scene: Scene, private dense = false, private onDenseChange: ((dense: boolean) => void)) {
     this.rain = new Sound('weather', 'assets/rain_2.wav', this.scene, undefined, {
       loop: true
     })
@@ -40,10 +40,13 @@ export class RainController {
     }
 
     if (Math.random() < .667) {
+      this.dense = false
+      this.onDenseChange(this.dense)
       return
     }
 
     this.dense = Math.random() < .333
+    this.onDenseChange(this.dense)
 
     if (this.rain.isReady()) {
       this.rain.play()
@@ -61,8 +64,10 @@ export class RainController {
       height: (this.dense ? 6 : 8 / 32)
     }, this.scene)
 
+    const rainTex = new Texture(`assets/${this.dense ? 'dense ' : ''}rain.png`, this.scene)
+    rainTex.uScale = this.dense ? 2 : 1
     const rainMat = new StandardMaterial('rain material', this.scene)
-    rainMat.opacityTexture = new Texture(`assets/${this.dense ? 'dense ' : ''}rain.png`, this.scene)
+    rainMat.opacityTexture = rainTex
     rainMat.transparencyMode = Material.MATERIAL_ALPHABLEND
     rainMat.twoSidedLighting = true
     rainMat.emissiveColor = this.scene.fogColor
@@ -99,7 +104,7 @@ export class RainController {
 
     SPS.updateParticle = particle => {
       const s = .012 * this.scene.getEngine().getDeltaTime()
-      particle.position.addInPlaceFromFloats(0, s * this.scene.gravity.y * 24, 0)
+      particle.position.addInPlaceFromFloats(0, s * this.scene.gravity.y * (this.dense ? 48 : 24), 0)
 
       if (particle.position.y < 0) {
         const target = (this.scene.activeCamera! as FollowCamera).target

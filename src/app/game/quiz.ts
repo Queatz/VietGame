@@ -1,7 +1,11 @@
 import * as seedrandom from "seedrandom"
 import { QuizItem, shuffle } from "./models"
 
-const popularSetX = `
+export const settings = {
+  count: 7
+}
+
+const popular = `
 ai
 ăn
 anh
@@ -112,24 +116,24 @@ với
 xong
 `.trim().split('\n')
 
-const quizRaw = `
-tạo ra	create
-mảnh đất vật lý	physical land
-hưởng quyền lợi	benefit
-công dân	citizen
-tùy ý	optional
-bất kì	any
-đất	land
-thuế	tax
-chính phủ	government
-giới hạn	limit
-sát nhập	merge
-dần dần	slowly
-phần	part
-tới	coming
-`
+// const quizRaw = `
+// tạo ra	create
+// mảnh đất vật lý	physical land
+// hưởng quyền lợi	benefit
+// công dân	citizen
+// tùy ý	optional
+// bất kì	any
+// đất	land
+// thuế	tax
+// chính phủ	government
+// giới hạn	limit
+// sát nhập	merge
+// dần dần	slowly
+// phần	part
+// tới	coming
+// `
 
-const quizRawAll = `
+const quizRaw = `
 à	really? (tag question denotes surprise)
 ạ	final article used to show respect
 ai	who
@@ -1145,7 +1149,7 @@ export function restartQuiz() {
       question: x[1].trim()
     } as QuizItem
   })//.filter(x => popular.indexOf(x.answer) !== -1)
-  )) //.slice(0, 7)) //).slice(0, Math.ceil(popular.length / 2)))
+  ).slice(0, settings.count)) //).slice(0, Math.ceil(popular.length / 2)))
 }
 
 restartQuiz()

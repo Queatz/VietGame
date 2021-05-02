@@ -18,7 +18,7 @@ canvas {
   padding: 0;
 }
 
-input {
+input.say {
   width: 24rem;
   background: white;
   position: absolute;
@@ -62,5 +62,10 @@ input {
     b {
       font-size: 18px;
     }
+  }
+
+  .show-link {
+    cursor: pointer;
+    color: #a09633;
   }
 }
