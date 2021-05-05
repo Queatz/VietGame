@@ -116,22 +116,45 @@ với
 xong
 `.trim().split('\n')
 
-// const quizRaw = `
-// tạo ra	create
-// mảnh đất vật lý	physical land
-// hưởng quyền lợi	benefit
-// công dân	citizen
-// tùy ý	optional
-// bất kì	any
-// đất	land
-// thuế	tax
-// chính phủ	government
-// giới hạn	limit
-// sát nhập	merge
-// dần dần	slowly
-// phần	part
-// tới	coming
-// `
+const quizRaw1 = `
+các	Plural marker (global)
+những	Plural marker (local)
+tất cả	All
+đâu	Where
+đưa	Bring
+bao giở	When
+khi nào	At what time
+thứ mấy	what weekday
+ngày nào / hôm nào	what day
+ngày bao nhiêu	what day of the month
+tháng mấy	what month
+sang	Next
+thì	Indeed
+sao	Why
+để	For what purpose
+mấy	How many (few)
+bao nhiêu	How many (many)
+ai	Who / Whom
+gì	What
+nào	Which
+`
+
+const quizRaw2 = `
+tạo ra	create
+mảnh đất vật lý	physical land
+hưởng quyền lợi	benefit
+công dân	citizen
+tùy ý	optional
+bất kì	any
+đất	land
+thuế	tax
+chính phủ	government
+giới hạn	limit
+sát nhập	merge
+dần dần	slowly
+phần	part
+tới	coming
+`
 
 const quizRaw = `
 à	really? (tag question denotes surprise)
@@ -1138,18 +1161,25 @@ yên tĩnh	quiet
 yêu	to love
 yếu	weak
 `
+
+const allQuizItems = quizRaw.trim().split('\n').map(item => {
+  const x = item.split('\t')
+  return {
+    answer: x[0].trim(),
+    question: x[1].trim()
+  } as QuizItem
+})
+
 export const quiz = [] as Array<QuizItem>
 
 export function restartQuiz() {
   quiz.length = 0
-  quiz.push(...shuffle(seedrandom(), quizRaw.trim().split('\n').map(item => {
-    const x = item.split('\t')
-    return {
-      answer: x[0].trim(),
-      question: x[1].trim()
-    } as QuizItem
-  })//.filter(x => popular.indexOf(x.answer) !== -1)
+  quiz.push(...shuffle(seedrandom(), allQuizItems//.filter(x => popular.indexOf(x.answer) !== -1)
   ).slice(0, settings.count)) //).slice(0, Math.ceil(popular.length / 2)))
+}
+
+export function replaceItem(index: number) {
+  quiz[index] = allQuizItems[Math.floor(Math.random() * allQuizItems.length)]
 }
 
 restartQuiz()

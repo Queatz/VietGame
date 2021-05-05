@@ -1,21 +1,20 @@
 <canvas #renderCanvas touch-action="none"></canvas>
 <input #sayInput class="say" placeholder="Talk..." [hidden]="!showSay" />
 <div class="intro-modal" *ngIf="showIntro">
-  <h2>You're about to learn the following</h2>
-  <div *ngFor="let item of quiz">
+  <h2 [hidden]="showList">You're about to learn the following</h2>
+  <div class="quiz-item" *ngFor="let item of quiz; let i = index" (click)="replace(i)">
     <b>{{ item.answer }}</b><br />
     {{ item.question }}
   </div>
-  <br />
-  <b>Instructions</b>
-  Collect words you don't know and talk with the friends<br />
-  Answer all purple shirt lady's questions to win<br />
-  Arrow keys to move, space to climb walls, R to restart
-  <br />
-  <br />
-  <div class="show-link" (click)="toggleSettings()">Change difficulty</div>
+  <div class="instructions">
+    <b>Instructions</b>
+    Collect words you don't know and talk with friends<br />
+    Answer all purple shirt lady's questions to win<br />
+    Arrow keys to move, space to climb walls, R to restart
+  </div>
+  <div [hidden]="showList" class="show-link" (click)="toggleSettings()">Change difficulty</div>
   <div *ngIf="showSettings">
     <input type="number" [(ngModel)]="gameSettings.count" />
   </div>
-  <button (click)="go()">Let's go!</button>
-</div>
+  <button (click)="go()">{{ !showList ? 'Let\'s go!' : 'Keep going' }}</button>
+</div> 

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs'
 import { GameController } from './game/game.controller'
-import { quiz, settings } from './game/quiz'
+import { quiz, replaceItem, settings } from './game/quiz'
 
 @Component({
   selector: 'app-root',
@@ -26,9 +26,15 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   showIntro = true
   showSettings = false
+  showList = false
 
   ngOnInit(): void {
     this.game = new GameController(this.say, this.renderCanvas.nativeElement, () => {
+      this.showIntro = true
+      this.showSettings = false
+      this.showList = false
+    }, () => {
+      this.showList = true
       this.showIntro = true
       this.showSettings = false
     })
@@ -40,6 +46,10 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.renderCanvas.nativeElement.focus()
+
+    setTimeout(() => {
+      this.game.resize()
+    })
   }
 
   @HostListener('window:keydown.esc')
@@ -74,6 +84,11 @@ export class AppComponent implements OnInit, AfterViewInit {
 
       this.renderCanvas.nativeElement.focus()
     }
+  }
+
+  replace(index: number) {
+    replaceItem(index)
+    this.game.world.restart(true)
   }
 
   toggleSettings() {

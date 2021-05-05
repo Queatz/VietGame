@@ -157,12 +157,12 @@ export class WorldController {
     )
 
     this.map = new MapController(this.scene)
-    this.level = new LevelController(this.scene, this.map)
+    this.level = new LevelController(this.scene, this.map, this.shadowGenerator)
     this.tree = new TreeController(this.scene, this.map, this.level, this.light)
 
     this.inventory = new InventoryController()
     this.people = new PeopleController(this, this.overlay, this.map, this.level, this.inventory, this.scene)
-    this.items = new ItemsController(this.overlay, this.map, this.level, this.scene)
+    this.items = new ItemsController(this.overlay, this.map, this.level, this.scene, this)
 
     this.player = new PlayerController(this.say, this.people, this.items, this.input, this.overlay, this.scene, this.level, this.inventory)
 
@@ -202,8 +202,9 @@ export class WorldController {
     this.overlay.text('🎵 "Next to You" by Joth', undefined, true)
   }
 
-  restart(): void {
-    restartQuiz()
+  restart(soft = false): void {
+    if (!soft) restartQuiz()
+
     this.makeSky()
     this.map.restart()
     this.level.restart()
@@ -230,6 +231,11 @@ export class WorldController {
     this.scene.fogColor = sky
     this.scene.fogEnd = 20 + Math.random() * 80
   }
+
+  showList() {
+    this.game.showList()
+  }
+
 
   update(): void {
     this.camera.update()

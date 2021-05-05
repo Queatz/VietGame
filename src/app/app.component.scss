@@ -41,7 +41,6 @@ input.say {
   left: 50%;
   transform: translate(-50%, -50%);
   background: rgba($color: #ffffff, $alpha: .95);
-  padding: 1rem;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -54,18 +53,43 @@ input.say {
 
   h2 {
     margin-top: 0;
+    padding: 1rem 1rem 0 1rem;
   }
 
   div {
-    margin-bottom: 1rem;
+    padding: .5rem 1rem;
   
     b {
       font-size: 18px;
     }
   }
 
+  .quiz-item {
+    cursor: pointer;
+    position: relative;
+
+    &:hover {
+      background: rgba($color: #000000, $alpha: .05);
+
+      &:after {
+        content: '⟳';
+        position: absolute;
+        font-size: 24px;
+        top: 50%;
+        transform: translate(0, -50%);
+        right: 1rem;
+        opacity: .25;
+      }
+    }
+  }
+
+  button {
+    margin: 1rem;
+  }
+  
   .show-link {
     cursor: pointer;
     color: #a09633;
+    padding: 0 1rem;
   }
 }

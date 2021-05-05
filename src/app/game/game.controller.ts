@@ -9,7 +9,7 @@ export class GameController {
 
   private clearInputFlag = false
 
-  constructor(say: Observable<string>, canvas: HTMLCanvasElement, private onRestart: () => void) {
+  constructor(say: Observable<string>, canvas: HTMLCanvasElement, private onRestart: () => void, private onList: () => void) {
     this.engine = new Engine(canvas, false)
 
     this.world = new WorldController(say, this.engine, this)
@@ -22,6 +22,10 @@ export class GameController {
         this.world.input.clear()
       }
     })
+  }
+
+  showList() {
+    this.onList()
   }
 
   restart() {

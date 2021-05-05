@@ -1,4 +1,4 @@
-import { AbstractMesh, Mesh, Scene, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, Mesh, Scene, ShadowGenerator, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { BoxBuilder } from "@babylonjs/core/Meshes/Builders/boxBuilder"
 import * as seedrandom from 'seedrandom'
 import { MapController } from "./map.controller"
@@ -12,7 +12,7 @@ export class LevelController {
 
   wallMeshes = [] as Array<AbstractMesh>
 
-  constructor(private scene: Scene, private map: MapController) {
+  constructor(private scene: Scene, private map: MapController, private shadowGenerator: ShadowGenerator) {
     this.wallMaterial = new StandardMaterial('wall', this.scene)
     const texture = new Texture('/assets/wall.png', this.scene, false, false, Texture.NEAREST_SAMPLINGMODE)
     texture.vScale = 2
@@ -80,7 +80,7 @@ export class LevelController {
 
         let mesh: AbstractMesh
 
-        mesh = BoxBuilder.CreateBox('tree', opts, this.scene)
+        mesh = BoxBuilder.CreateBox('temp', opts, this.scene)
         mesh.material = treeMaterial
 
         const s = 3 * ((w - .2) / .8)
@@ -94,6 +94,9 @@ export class LevelController {
 
     const merged = Mesh.MergeMeshes(this.wallMeshes as Array<Mesh>)!
     merged.checkCollisions = true
+
+    this.shadowGenerator.addShadowCaster(merged)
+    merged.receiveShadows = true
     
     this.wallMeshes = [ ...borderWallMeshes, merged ]
   }
