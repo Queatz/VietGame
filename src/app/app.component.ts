@@ -87,6 +87,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   replace(index: number) {
+    if (this.showList) return
+
     replaceItem(index)
     this.game.world.restart(true)
   }

@@ -2,12 +2,12 @@
 <input #sayInput class="say" placeholder="Talk..." [hidden]="!showSay" />
 <div class="intro-modal" *ngIf="showIntro">
   <h2 [hidden]="showList">You're about to learn the following</h2>
-  <div class="quiz-item" *ngFor="let item of quiz; let i = index" (click)="replace(i)">
+  <div [ngClass]="{ 'quiz-item': !showList }" *ngFor="let item of quiz; let i = index" (click)="replace(i)">
     <b>{{ item.answer }}</b><br />
     {{ item.question }}
   </div>
   <div class="instructions">
-    <b>Instructions</b>
+    <b class="sm">Instructions</b><br />
     Collect words you don't know and talk with friends<br />
     Answer all purple shirt lady's questions to win<br />
     Arrow keys to move, space to climb walls, R to restart

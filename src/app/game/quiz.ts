@@ -116,7 +116,7 @@ với
 xong
 `.trim().split('\n')
 
-const quizRaw1 = `
+const quizRaw3 = `
 các	Plural marker (global)
 những	Plural marker (local)
 tất cả	All

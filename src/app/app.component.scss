@@ -59,7 +59,7 @@ input.say {
   div {
     padding: .5rem 1rem;
   
-    b {
+    b:not(.sm) {
       font-size: 18px;
     }
   }

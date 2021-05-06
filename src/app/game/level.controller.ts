@@ -1,4 +1,4 @@
-import { AbstractMesh, Mesh, Scene, ShadowGenerator, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
+import { AbstractMesh, Color3, Mesh, Scene, ShadowGenerator, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
 import { BoxBuilder } from "@babylonjs/core/Meshes/Builders/boxBuilder"
 import * as seedrandom from 'seedrandom'
 import { MapController } from "./map.controller"
@@ -18,7 +18,8 @@ export class LevelController {
     texture.vScale = 2
     texture.uScale = 2 * (this.map.mapSize / 2 / 2)
     this.wallMaterial.diffuseTexture = texture
-    this.wallMaterial.specularPower = 512
+    this.wallMaterial.specularPower = 24
+    this.wallMaterial.specularColor = new Color3(.333, .333, .333)
 
     this.restart()
   }
@@ -68,7 +69,9 @@ export class LevelController {
     treeTexture.vScale = 1
     treeTexture.uScale = 1
     treeMaterial.diffuseTexture = treeTexture
-    treeMaterial.specularPower = 512
+    treeMaterial.specularPower = 24
+    treeMaterial.specularColor = new Color3(.333, .333, .333)
+
 
     for (let x = -this.map.numTiles / 2; x < this.map.numTiles / 2; x++) {
       for (let y = -this.map.numTiles / 2; y < this.map.numTiles / 2; y++) {
