@@ -1,6 +1,6 @@
-import { Engine } from "@babylonjs/core"
-import { Observable } from "rxjs"
-import { WorldController } from "./world.controller"
+import { Engine } from '@babylonjs/core'
+import { Observable } from 'rxjs'
+import { WorldController } from './world.controller'
 
 export class GameController {
 

@@ -1,11 +1,11 @@
-import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, Sound, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
-import { OverlayController } from "./overlay.controller"
+import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, Sound, StandardMaterial, Texture, Vector3 } from '@babylonjs/core'
+import { OverlayController } from './overlay.controller'
 import * as seedrandom from 'seedrandom'
-import { quiz } from "./quiz"
-import { MapController } from "./map.controller"
-import { LevelController } from "./level.controller"
-import { QuizItem } from "./models"
-import { WorldController } from "./world.controller"
+import { quiz } from './quiz'
+import { MapController } from './map.controller'
+import { LevelController } from './level.controller'
+import { QuizItem } from './models'
+import { WorldController } from './world.controller'
 
 export class ItemsController {
 
@@ -43,7 +43,7 @@ export class ItemsController {
 
     this.restart()
   }
-  
+
   restart() {
     this.quizItems = [ ...quiz ]
 
@@ -54,17 +54,17 @@ export class ItemsController {
     this.itemMeshes = []
 
     const c = 3
-    for(let i = 0; i < this.quizItems.length * c; i++) {
+    for (let i = 0; i < this.quizItems.length * c; i++) {
       const mesh = this.base.createInstance('item')
 
       mesh.billboardMode = Mesh.BILLBOARDMODE_Y
 
       for (let tries = 0; tries < 20; tries++) {
         mesh.position.copyFrom(new Vector3((this.rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), .2 / 2, (this.rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
-      
+
         const ray = new Ray(mesh.position.add(new Vector3(0, -2, 0)), Vector3.Up(), 10)
         const hits = ray.intersectsMeshes(this.level.wallMeshes as Array<DeepImmutable<AbstractMesh>>, true)
-            
+
         if (!hits?.[0]?.hit) {
           break
         }
@@ -80,7 +80,7 @@ export class ItemsController {
         index: 0,
         items: [ item ],
         ask: () => {
-          if (!mesh.isVisible) return
+          if (!mesh.isVisible) { return }
 
           mesh.metadata.talkMesh?.dispose()
           mesh.metadata.nameMesh?.dispose()
@@ -122,8 +122,8 @@ export class ItemsController {
 
     listMesh.metadata = {
       ask: () => {
-        if (!listMesh.isVisible) return
-      
+        if (!listMesh.isVisible) { return }
+
         listMesh.isVisible = false
 
         this.getSound.play()
@@ -140,10 +140,10 @@ export class ItemsController {
 
     for (let tries = 0; tries < 20; tries++) {
       listMesh.position.copyFrom(new Vector3((this.rnd() - .5) * 2 * (this.map.mapSize / 2 - 2), .2 / 2, (this.rnd() - .5) * 2 * (this.map.mapSize / 2 - 2)))
-    
+
       const ray = new Ray(listMesh.position.add(new Vector3(0, -2, 0)), Vector3.Up(), 10)
       const hits = ray.intersectsMeshes(this.level.wallMeshes as Array<DeepImmutable<AbstractMesh>>, true)
-          
+
       if (!hits?.[0]?.hit) {
         break
       }

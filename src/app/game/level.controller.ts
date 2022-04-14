@@ -1,11 +1,11 @@
-import { AbstractMesh, Color3, Mesh, Scene, ShadowGenerator, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
-import { BoxBuilder } from "@babylonjs/core/Meshes/Builders/boxBuilder"
+import { AbstractMesh, Color3, Mesh, Scene, ShadowGenerator, StandardMaterial, Texture, Vector3 } from '@babylonjs/core'
+import { BoxBuilder } from '@babylonjs/core/Meshes/Builders/boxBuilder'
 import * as seedrandom from 'seedrandom'
-import { MapController } from "./map.controller"
-import { Perlin } from "./noise"
+import { MapController } from './map.controller'
+import { Perlin } from './noise'
 
 export class LevelController {
-  
+
   walls!: Perlin
 
   wallMaterial: StandardMaterial
@@ -23,7 +23,7 @@ export class LevelController {
 
     this.restart()
   }
-  
+
   restart() {
     this.walls = new Perlin(seedrandom())
     this.wallMeshes.forEach(mesh => {
@@ -33,7 +33,7 @@ export class LevelController {
     this.wallMeshes = []
     const borderWallMeshes = [] as Array<AbstractMesh>
 
-    ;[
+    ; [
       [-1, 0],
       [1, 0],
       [0, -1],
@@ -56,7 +56,7 @@ export class LevelController {
 
       borderWallMeshes.push(mesh)
     })
-    
+
     const ts = this.map.mapSize / this.map.numTiles
     const opts = {
       height: 2,
@@ -100,10 +100,10 @@ export class LevelController {
 
     this.shadowGenerator.addShadowCaster(merged)
     merged.receiveShadows = true
-    
+
     this.wallMeshes = [ ...borderWallMeshes, merged ]
   }
- 
+
   isWall(x: number, y: number): boolean {
     return this.sampleWall(x, y) > .2
   }
@@ -120,7 +120,7 @@ export class LevelController {
 
     for (let x = 0; x < this.map.numTiles / 2; x++) {
       for (let y = 0; y < this.map.numTiles / 2; y++) {
-        for (let s of search) {
+        for (const s of search) {
           if (!this.isWall(x * s[0], y * s[1])) {
             return new Vector3(x * ts + ts / 2, 0, y * ts + ts / 2)
           }
@@ -130,7 +130,7 @@ export class LevelController {
 
     return Vector3.Zero()
   }
- 
+
   sampleWall(x: number, y: number): number {
     return Math.abs(this.walls.sample(x / this.map.numTiles * (this.map.mapSize / 12), y / this.map.numTiles * (this.map.mapSize / 12)))
   }

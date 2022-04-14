@@ -1,4 +1,4 @@
-import { QuizItem } from "./models"
+import { QuizItem } from './models'
 
 export class InventoryController {
   readonly inventory = [] as Array<QuizItem>

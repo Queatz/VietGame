@@ -78,7 +78,7 @@ export class OverlayController {
     mat.disableLighting = true
     mat.backFaceCulling = false
 
-    const plane = MeshBuilder.CreatePlane('talk', { width: planeWidth, height: planeHeight, updatable: true }, this.scene)
+    const plane = MeshBuilder.CreatePlane('talk', { width: planeWidth / 48, height: planeHeight / 48, updatable: true }, this.scene)
     plane.material = mat
 
     if (position) {

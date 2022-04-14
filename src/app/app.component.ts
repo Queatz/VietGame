@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core'
 import { Subject } from 'rxjs'
 import { GameController } from './game/game.controller'
 import { quiz, replaceItem, settings } from './game/quiz'
@@ -58,7 +58,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.showSay = false
       this.renderCanvas.nativeElement.focus()
     } else {
-      //this.showIntro = !this.showIntro
+      // this.showIntro = !this.showIntro
     }
   }
 
@@ -70,7 +70,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     this.showSay = !this.showSay
-    
+
     if (this.showSay) {
       setTimeout(() => {
         this.sayInput.nativeElement.focus()
@@ -95,7 +95,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   toggleSettings() {
     this.showSettings = !this.showSettings
-    
+
     if (!this.showSettings) {
       this.game.world.restart()
     }
