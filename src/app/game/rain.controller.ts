@@ -14,7 +14,7 @@ export class RainController {
     this.wind = new Sound('weather', 'assets/wind_4.wav', this.scene, undefined, {
       loop: true
     })
-    
+
     this.restart()
   }
 
@@ -53,7 +53,7 @@ export class RainController {
     } else {
       this.rain.autoplay = true
     }
-    
+
     const volume = this.dense ? .8 : .2
 
     this.rain.setVolume(volume)
@@ -90,7 +90,7 @@ export class RainController {
 
     SPS.initParticles = () => {
       for (let p = 0; p < SPS.nbParticles; p++) {
-        const particle = SPS.particles[p]  
+        const particle = SPS.particles[p]
         particle.position.set(
           Math.random() * rainBoxSize,
           Math.random() * rainBoxHeight,

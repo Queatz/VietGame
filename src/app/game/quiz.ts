@@ -1,5 +1,5 @@
-import * as seedrandom from "seedrandom"
-import { QuizItem, shuffle } from "./models"
+import * as seedrandom from 'seedrandom'
+import { QuizItem, shuffle } from './models'
 
 export const settings = {
   count: 7
@@ -1174,8 +1174,8 @@ export const quiz = [] as Array<QuizItem>
 
 export function restartQuiz() {
   quiz.length = 0
-  quiz.push(...shuffle(seedrandom(), allQuizItems//.filter(x => popular.indexOf(x.answer) !== -1)
-  ).slice(0, settings.count)) //).slice(0, Math.ceil(popular.length / 2)))
+  quiz.push(...shuffle(seedrandom(), allQuizItems// .filter(x => popular.indexOf(x.answer) !== -1)
+  ).slice(0, settings.count)) // ).slice(0, Math.ceil(popular.length / 2)))
 }
 
 export function replaceItem(index: number) {

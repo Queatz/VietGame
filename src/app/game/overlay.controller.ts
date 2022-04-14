@@ -1,4 +1,19 @@
-import { AbstractMesh, Scene, DynamicTexture, StandardMaterial, MeshBuilder, Mesh, Vector3, Texture, Engine, Color3, VertexBuffer, Scalar, Angle, FollowCamera } from '@babylonjs/core'
+import {
+  AbstractMesh,
+  Angle,
+  Color3,
+  DynamicTexture,
+  Engine,
+  FollowCamera, ICanvasRenderingContext,
+  Mesh,
+  MeshBuilder,
+  Scalar,
+  Scene,
+  StandardMaterial,
+  Texture,
+  Vector3,
+  VertexBuffer
+} from '@babylonjs/core'
 
 export class OverlayController {
   constructor(private scene: Scene) {
@@ -8,17 +23,24 @@ export class OverlayController {
     return [
       this.text(text, mesh, false, 1),
       ...options.map((x, i) => {
-        return this.text(x[0], mesh, false, i + 2, x[1]);
+        return this.text(x[0], mesh, false, i + 2, x[1])
       })
-    ];
+    ]
   }
 
-  text(text: string, mesh?: AbstractMesh, vanish: boolean = false, position?: number, callback?: () => void, fontSize = 1, offset: number = 1): Mesh {
-    const font_size = 48 * fontSize
-    const font = 'normal ' + font_size + 'px Nunito, Arial, sans-serif'
-    
+  text(
+    text: string, mesh?: AbstractMesh,
+    vanish: boolean = false,
+    position?: number,
+    callback?: () => void,
+    fontSize = 1,
+    offset: number = 1
+  ): Mesh {
+    const fontSize = 48 * fontSize
+    const font = 'normal ' + fontSize + 'px Nunito, Arial, sans-serif'
+
     const planeHeight = .25 * fontSize
-    const DTHeight = 1.5 * font_size
+    const DTHeight = 1.5 * fontSize
     const ratio = planeHeight / DTHeight
 
     const temp = new DynamicTexture('DynamicTexture', 64, this.scene, false)
@@ -66,7 +88,7 @@ export class OverlayController {
     plane.billboardMode = Mesh.BILLBOARDMODE_ALL
 
     const node = new Mesh('pivot', this.scene)
-    
+
     if (mesh) {
       node.parent = mesh
 
@@ -106,7 +128,7 @@ export class OverlayController {
     return plane
   }
 
-  private canvasRoundRect(context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radius: number) {
+  private canvasRoundRect(context: ICanvasRenderingContext, x: number, y: number, w: number, h: number, radius: number) {
     const r = x + w
     const b = y + h
     context.beginPath()

@@ -1,13 +1,13 @@
-import { Color3, FloatArray, Mesh, MultiMaterial, Scene, StandardMaterial, SubMesh, Texture, Vector3, VertexBuffer } from "@babylonjs/core"
-import { GroundBuilder } from "@babylonjs/core/Meshes/Builders/groundBuilder"
-import * as seedrandom from "seedrandom"
-import { Perlin } from "./noise"
+import { Color3, FloatArray, Mesh, MultiMaterial, Scene, StandardMaterial, SubMesh, Texture, Vector3, VertexBuffer } from '@babylonjs/core'
+import { GroundBuilder } from '@babylonjs/core/Meshes/Builders/groundBuilder'
+import * as seedrandom from 'seedrandom'
+import { Perlin } from './noise'
 
 export class MapController {
-  
+
   readonly mapSize = 32
   readonly numTiles = this.mapSize / 2
-  
+
   ground!: Mesh
   groundMaterial!: StandardMaterial
   groundTileMaterial!: MultiMaterial
@@ -15,7 +15,7 @@ export class MapController {
   constructor(private scene: Scene) {
     this.restart()
   }
-  
+
   restart() {
     this.ground?.dispose()
 
@@ -51,7 +51,7 @@ export class MapController {
 
     // const verticesCount = this.ground.getTotalVertices()
     // const tileIndicesLength = this.ground.getIndices()!.length / (this.numTiles * this.numTiles)
-    
+
     // this.ground.subMeshes = []
     // let base = 0
 
@@ -64,12 +64,12 @@ export class MapController {
 
     const uvs: FloatArray = []
 
-    let dirtTileUVs = this.getTileUVs(0)
-    let grassTileUVs = this.getTileUVs(1)
-    let waterTileUVs = this.getTileUVs(2)
+    const dirtTileUVs = this.getTileUVs(0)
+    const grassTileUVs = this.getTileUVs(1)
+    const waterTileUVs = this.getTileUVs(2)
 
-    let noise = new Perlin(seedrandom())
-    let water = new Perlin(seedrandom())
+    const noise = new Perlin(seedrandom())
+    const water = new Perlin(seedrandom())
 
     for (let row = 0; row < this.numTiles; row++) {
       for (let col = 0; col < this.numTiles; col++) {
@@ -89,10 +89,10 @@ export class MapController {
   private getTileUVs(index: number) {
     const imageXTileCount = 2
 
-    let s = 1 / imageXTileCount;
-    let x = s * (index % imageXTileCount);
-    let y = s * (Math.floor(index / imageXTileCount));
+    const s = 1 / imageXTileCount
+    const x = s * (index % imageXTileCount)
+    const y = s * (Math.floor(index / imageXTileCount))
 
-    return [x, y, x + s, y, x, y + s, x + s, y + s];
+    return [x, y, x + s, y, x, y + s, x + s, y + s]
   }
 }

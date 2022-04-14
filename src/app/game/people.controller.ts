@@ -1,12 +1,12 @@
-import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, Sound, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
-import { OverlayController } from "./overlay.controller"
+import { AbstractMesh, Color3, DeepImmutable, Material, Mesh, PlaneBuilder, Ray, Scene, Sound, StandardMaterial, Texture, Vector3 } from '@babylonjs/core'
+import { OverlayController } from './overlay.controller'
 import * as seedrandom from 'seedrandom'
-import { quiz } from "./quiz"
-import { QuizItem, shuffle } from "./models"
-import { MapController } from "./map.controller"
-import { LevelController } from "./level.controller"
-import { WorldController } from "./world.controller"
-import { InventoryController } from "./inventory.controller"
+import { quiz } from './quiz'
+import { QuizItem, shuffle } from './models'
+import { MapController } from './map.controller'
+import { LevelController } from './level.controller'
+import { WorldController } from './world.controller'
+import { InventoryController } from './inventory.controller'
 
 export class PeopleController {
 
@@ -30,10 +30,10 @@ export class PeopleController {
   ) {
     this.talkSound = new Sound('get', '/assets/threeTone1.mp3', this.scene)
     this.completeSound = new Sound('get', '/assets/highUp.mp3', this.scene)
-  
+
     this.restart()
   }
-  
+
   restart() {
     this.quizItems = [ ...quiz ]
 
@@ -43,7 +43,7 @@ export class PeopleController {
     this.peopleMeshes.forEach(mesh => {
       mesh.dispose()
     })
-    
+
     this.peopleMeshes = []
 
     const rnd = seedrandom()
@@ -75,13 +75,13 @@ export class PeopleController {
 
     const makeMaterial = (person: string) => {
       const material = new StandardMaterial('player', this.scene)
-        material.transparencyMode = Material.MATERIAL_ALPHATEST
-        material.diffuseTexture = new Texture(`/assets/person ${person}.png`, this.scene, false, true, Texture.NEAREST_SAMPLINGMODE)
-        material.diffuseTexture.hasAlpha = true
-        material.useAlphaFromDiffuseTexture = true
-        material.backFaceCulling = false
-        material.specularColor = Color3.Black()
-        return material
+      material.transparencyMode = Material.MATERIAL_ALPHATEST
+      material.diffuseTexture = new Texture(`/assets/person ${person}.png`, this.scene, false, true, Texture.NEAREST_SAMPLINGMODE)
+      material.diffuseTexture.hasAlpha = true
+      material.useAlphaFromDiffuseTexture = true
+      material.backFaceCulling = false
+      material.specularColor = Color3.Black()
+      return material
     }
 
     const mats = {
@@ -92,7 +92,7 @@ export class PeopleController {
 
     const srnd = seedrandom()
 
-    for(let i = 0; i < this.numberOfPeople; i++) {
+    for (let i = 0; i < this.numberOfPeople; i++) {
       const mesh = makePersonMesh()
 
       positionMeshSafe(mesh)

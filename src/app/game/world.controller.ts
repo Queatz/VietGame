@@ -1,17 +1,17 @@
-import { AbstractMesh, BoxBuilder, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, GlowLayer, HemisphericLight, InstancedMesh, Nullable, PrePassRenderer, Ray, Scene, Sound, SphereBuilder, SSAO2RenderingPipeline, StandardMaterial, Texture, Vector3 } from "@babylonjs/core"
-import { InputController } from "./input.controller"
-import { MapController } from "./map.controller"
-import { PeopleController } from "./people.controller"
-import { PlayerController } from "./player.controller"
-import { OverlayController } from "./overlay.controller"
-import { Observable } from "rxjs"
-import { LevelController } from "./level.controller"
-import { ItemsController } from "./items.controller"
-import { restartQuiz } from "./quiz"
-import { InventoryController } from "./inventory.controller"
-import { GameController } from "./game.controller"
-import { RainController } from "./rain.controller"
-import { TreeController } from "./tree.controller"
+import { AbstractMesh, BoxBuilder, CascadedShadowGenerator, Color3, Color4, ColorCorrectionPostProcess, CubeTexture, DeepImmutable, DefaultRenderingPipeline, DirectionalLight, Engine, FollowCamera, FollowCameraMouseWheelInput, FollowCameraPointersInput, FreeCamera, GlowLayer, HemisphericLight, InstancedMesh, Nullable, PrePassRenderer, Ray, Scene, Sound, SphereBuilder, SSAO2RenderingPipeline, StandardMaterial, Texture, Vector3 } from '@babylonjs/core'
+import { InputController } from './input.controller'
+import { MapController } from './map.controller'
+import { PeopleController } from './people.controller'
+import { PlayerController } from './player.controller'
+import { OverlayController } from './overlay.controller'
+import { Observable } from 'rxjs'
+import { LevelController } from './level.controller'
+import { ItemsController } from './items.controller'
+import { restartQuiz } from './quiz'
+import { InventoryController } from './inventory.controller'
+import { GameController } from './game.controller'
+import { RainController } from './rain.controller'
+import { TreeController } from './tree.controller'
 
 export class WorldController {
 
@@ -62,7 +62,7 @@ export class WorldController {
     this.overlayScene.autoClear = false
     this.overlayScene.clearColor = new Color4(1, 1, 1, 0)
     this.overlaySceneCamera = new FreeCamera('overlaySceneCamera', new Vector3(0, 10, 0), this.overlayScene)
-    let overlayPipeline = new DefaultRenderingPipeline('overlayPipeline', false, this.scene, [ this.overlaySceneCamera ])
+    const overlayPipeline = new DefaultRenderingPipeline('overlayPipeline', false, this.scene, [ this.overlaySceneCamera ])
     overlayPipeline.samples = 4
     this.overlay = new OverlayController(this.overlayScene)
 
@@ -78,9 +78,9 @@ export class WorldController {
     this.camera.rotationOffset = 180
     this.camera.fov = .667
     this.camera.maxZ = 200
-    ;(this.camera.inputs.attached['mousewheel'] as FollowCameraMouseWheelInput).wheelPrecision = 1
-    ;(this.camera.inputs.attached['pointers'] as FollowCameraPointersInput).angularSensibilityX = 2
-    ;(this.camera.inputs.attached['pointers'] as FollowCameraPointersInput).angularSensibilityY = 8
+    ; (this.camera.inputs.attached.mousewheel as FollowCameraMouseWheelInput).wheelPrecision = 1
+    ; (this.camera.inputs.attached.pointers as FollowCameraPointersInput).angularSensibilityX = 2
+    ; (this.camera.inputs.attached.pointers as FollowCameraPointersInput).angularSensibilityY = 8
     this.camera.inputs.remove(this.camera.inputs.attached.keyboard)
 
     this.light = new DirectionalLight('light', new Vector3(-25, -10, 0).normalize(), this.scene)
@@ -190,11 +190,11 @@ export class WorldController {
     this.scene.onBeforeRenderObservable.add(() => {
        this.update()
 
-      const d = Vector3.Distance(this.camera.position, this.player.playerObject.position)
-      const ray = new Ray(this.player.playerObject.position, this.camera.position.subtract(this.player.playerObject.position).normalize(), d)
-      const hits = ray.intersectsMeshes(this.level.wallMeshes as Array<DeepImmutable<AbstractMesh>>)
-          
-      if (hits?.[0]?.hit) {
+       const d = Vector3.Distance(this.camera.position, this.player.playerObject.position)
+       const ray = new Ray(this.player.playerObject.position, this.camera.position.subtract(this.player.playerObject.position).normalize(), d)
+       const hits = ray.intersectsMeshes(this.level.wallMeshes as Array<DeepImmutable<AbstractMesh>>)
+
+       if (hits?.[0]?.hit) {
         this.camera.position.copyFrom(Vector3.Lerp(this.camera.position, hits[0]!.pickedPoint!, .125))
       }
     })
@@ -203,7 +203,7 @@ export class WorldController {
   }
 
   restart(soft = false): void {
-    if (!soft) restartQuiz()
+    if (!soft) { restartQuiz() }
 
     this.makeSky()
     this.map.restart()
@@ -223,8 +223,8 @@ export class WorldController {
 
     this.ambientLight.direction.copyFrom(this.light.direction)
 
-    let sky = new Color3(1, .75, .5).toHSV()
-    let v = Math.random() * .65 + .125
+    const sky = new Color3(1, .75, .5).toHSV()
+    const v = Math.random() * .65 + .125
     Color3.HSVtoRGBToRef(Math.random() * 360, sky.g, v, sky)
     this.skyboxMaterial.emissiveColor = sky.scale(1.5)
     this.light.intensity = v
