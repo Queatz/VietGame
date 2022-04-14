@@ -33,10 +33,10 @@ export class OverlayController {
     vanish: boolean = false,
     position?: number,
     callback?: () => void,
-    fontSize = 1,
+    fontSizeArg = 1,
     offset: number = 1
   ): Mesh {
-    const fontSize = 48 * fontSize
+    const fontSize = 48 * fontSizeArg
     const font = 'normal ' + fontSize + 'px Nunito, Arial, sans-serif'
 
     const planeHeight = .25 * fontSize
@@ -64,7 +64,8 @@ export class OverlayController {
       this.canvasRoundRect(dynamicTexture.getContext(), 0, 0, DTWidth, DTHeight, 32)
     }
 
-    dynamicTexture.drawText(text, null, null, font, (position || 0) > 1 ? '#B767D2' : vanish || position ? '#000000' : '#ffffff', null as any)
+    dynamicTexture.drawText(text, null, null, font,
+      (position || 0) > 1 ? '#B767D2' : vanish || position ? '#000000' : '#ffffff', null as any)
     const mat = new StandardMaterial('mat', this.scene)
 
     if (vanish || position) {
@@ -81,8 +82,11 @@ export class OverlayController {
     plane.material = mat
 
     if (position) {
+      // tslint:disable-next-line:no-non-null-assertion
       const p = plane.getVerticesData(VertexBuffer.PositionKind)!
-      plane.geometry!.updateVerticesData(VertexBuffer.PositionKind, p.map((value: number, index: number) => index % 3 === 0 ? value + (planeWidth / 2) : value))
+      // tslint:disable-next-line:no-non-null-assertion
+      plane.geometry!.updateVerticesData(VertexBuffer.PositionKind,
+        p.map((value: number, index: number) => index % 3 === 0 ? value + (planeWidth / 2) : value))
     }
 
     plane.billboardMode = Mesh.BILLBOARDMODE_ALL
@@ -97,7 +101,7 @@ export class OverlayController {
         plane.position.addInPlace(new Vector3(0, position * planeHeight * 1.25, 0))
 
         plane.onBeforeBindObservable.add(() => {
-          const camera = this.scene.activeCamera! as FollowCamera
+          const camera = this.scene.activeCamera as FollowCamera
           const final = Math.abs(Scalar.DeltaAngle(
             Angle.FromRadians(camera.rotation.y).degrees(),
             Angle.FromRadians(mesh.absoluteRotationQuaternion.toEulerAngles().y).degrees()
